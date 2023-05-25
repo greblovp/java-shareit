@@ -46,7 +46,7 @@ public class ItemServiceImpl implements ItemService {
         //Проверяем, что пользователь существует
         userService.getUserById(userId);
         Item oldItem = checkItemId(itemId);
-        if (oldItem.getOwnerId() != userId) {
+        if (!userId.equals(oldItem.getOwnerId())) {
             throw new WrongItemOwnerException("У вещи с ID = " + itemId + " другой владелец.");
         }
 
