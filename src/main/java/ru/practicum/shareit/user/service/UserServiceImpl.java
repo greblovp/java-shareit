@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(long userId) {
+    public UserDto getUserById(Long userId) {
         return UserMapper.toUserDto(checkUserId(userId));
     }
 
@@ -52,19 +52,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto patchUser(long userId, UserDto userDto) {
+    public UserDto patchUser(Long userId, UserDto userDto) {
         User user = UserMapper.toUser(userDto);
         return UserMapper.toUserDto(userRepository.patchUser(userId, user)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID = " + userId + " не найден.")));
     }
 
     @Override
-    public void removeUser(long userId) {
+    public void removeUser(Long userId) {
         checkUserId(userId);
         userRepository.removeUser(userId);
     }
 
-    private User checkUserId(long id) {
+    private User checkUserId(Long id) {
         return userRepository.getUserById(id).orElseThrow(()
                 -> new UserNotFoundException("Пользователь с ID = " + id + " не найден."));
     }

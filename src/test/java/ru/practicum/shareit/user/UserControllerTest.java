@@ -90,7 +90,7 @@ class UserControllerTest {
     @SneakyThrows
     @Test
     void testUpdateValidUser() {
-        long userId = 1;
+        Long userId = 1L;
 
         UserDto userToUpdate = UserDto.builder()
                 .email("test@test.test")
@@ -113,7 +113,7 @@ class UserControllerTest {
     @SneakyThrows
     @Test
     void testUpdateInValidUser() {
-        long userId = 1;
+        Long userId = 1L;
         UserDto userToUpdate = UserDto.builder().email("badEmail").build();
         when(userService.patchUser(userId, userToUpdate)).thenReturn(userToUpdate);
 
@@ -128,7 +128,7 @@ class UserControllerTest {
     @Test
     @SneakyThrows
     public void testFindById() {
-        long userId = 1;
+        Long userId = 1L;
         UserDto user = UserDto.builder().build();
         user.setId(userId);
 
@@ -142,7 +142,7 @@ class UserControllerTest {
     @Test
     @SneakyThrows
     public void testFindByIdNotFound() {
-        int userId = 1;
+        Long userId = 1L;
 
         when(userService.getUserById(userId)).thenThrow(new UserNotFoundException(String.format("Пользователь с ID = %d не найден.", userId)));
 
@@ -153,7 +153,7 @@ class UserControllerTest {
     @Test
     @SneakyThrows
     public void testRemoveUser() {
-        int userId = 1;
+        Long userId = 1L;
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/users/" + userId))
                 .andExpect(status().isOk());

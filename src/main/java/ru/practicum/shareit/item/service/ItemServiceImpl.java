@@ -42,7 +42,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto patchItem(Long userId, long itemId, ItemDto itemDto) {
+    public ItemDto patchItem(Long userId, Long itemId, ItemDto itemDto) {
         //Проверяем, что пользователь существует
         userService.getUserById(userId);
         Item oldItem = checkItemId(itemId);
@@ -56,14 +56,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getItems(long userId) {
+    public Collection<ItemDto> getItems(Long userId) {
         return itemRepository.getItems(userId).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemDto getItemById(long itemId) {
+    public ItemDto getItemById(Long itemId) {
         return ItemMapper.toItemDto(checkItemId(itemId));
     }
 
@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-    private Item checkItemId(long id) {
+    private Item checkItemId(Long id) {
         return itemRepository.getItemById(id).orElseThrow(()
                 -> new ItemNotFoundException("Вещь с ID = " + id + " не найдена."));
     }

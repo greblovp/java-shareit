@@ -57,7 +57,7 @@ class UserServiceImplTest {
 
     @Test
     public void testFindById() {
-        long userId = 1;
+        Long userId = 1L;
         when(userRepository.getUserById(userId)).thenReturn(Optional.of(user1));
 
         UserDto result = userService.getUserById(userId);
@@ -68,7 +68,7 @@ class UserServiceImplTest {
 
     @Test
     public void testFindByIdNotFound() {
-        long userId = 3;
+        Long userId = 3L;
         when(userRepository.getUserById(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserById(userId))
@@ -103,7 +103,7 @@ class UserServiceImplTest {
 
     @Test
     public void testUpdateUser() {
-        long userId = 3;
+        Long userId = 3L;
         when(userRepository.patchUser(userId, user1)).thenReturn(Optional.of(user1));
 
         UserDto result = userService.patchUser(userId, userDto);
@@ -114,7 +114,7 @@ class UserServiceImplTest {
 
     @Test
     void testUpdateUser_whenUserNotFound() {
-        long userId = 3;
+        Long userId = 3L;
         when(userRepository.patchUser(userId, user1)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> userService.patchUser(userId, userDto))
                 .isInstanceOf(UserNotFoundException.class)
@@ -123,7 +123,7 @@ class UserServiceImplTest {
 
     @Test
     void removeUser_removesUser_whenUserExists() {
-        long userId = 3;
+        Long userId = 3L;
         when(userRepository.getUserById(userId)).thenReturn(Optional.of(user1));
         userService.removeUser(userId);
         verify(userRepository).removeUser(userId);
@@ -131,7 +131,7 @@ class UserServiceImplTest {
 
     @Test
     void removeUser_whenUserNotFound() {
-        long userId = 3;
+        Long userId = 3L;
         when(userRepository.getUserById(userId)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> userService.removeUser(userId))
                 .isInstanceOf(UserNotFoundException.class)

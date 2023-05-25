@@ -7,11 +7,11 @@ import java.util.Collection;
 public interface ItemService {
     ItemDto createItem(Long userId, ItemDto itemDto);
 
-    ItemDto patchItem(Long userId, long itemId, ItemDto itemDto);
+    ItemDto patchItem(Long userId, Long itemId, ItemDto itemDto);
 
-    Collection<ItemDto> getItems(long userId);
+    Collection<ItemDto> getItems(Long userId);
 
-    ItemDto getItemById(long itemId);
+    ItemDto getItemById(Long itemId);
 
     Collection<ItemDto> searchItem(String text);
 }

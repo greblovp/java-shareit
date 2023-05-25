@@ -33,7 +33,7 @@ class ItemControllerTest {
     @SneakyThrows
     @Test
     void testCreateValidItem() {
-        long userId = 1;
+        Long userId = 1L;
         ItemDto itemToCreate = ItemDto.builder()
                 .name("name")
                 .build();
@@ -55,7 +55,7 @@ class ItemControllerTest {
     @SneakyThrows
     @Test
     void testCreateItemWithInvalidHeader() {
-        long userId = 1;
+        Long userId = 1L;
         ItemDto itemToCreate = ItemDto.builder()
                 .name("name")
                 .build();
@@ -72,8 +72,8 @@ class ItemControllerTest {
     @SneakyThrows
     @Test
     void testUpdateValidItem() {
-        long userId = 1;
-        long itemId = 1;
+        Long userId = 1L;
+        Long itemId = 1L;
         ItemDto itemToUpdate = ItemDto.builder()
                 .name("name")
                 .build();
@@ -95,7 +95,7 @@ class ItemControllerTest {
     @SneakyThrows
     @Test
     void testGetItems() {
-        long userId = 1;
+        Long userId = 1L;
         ItemDto item = ItemDto.builder()
                 .name("name")
                 .build();
@@ -117,7 +117,7 @@ class ItemControllerTest {
     @Test
     @SneakyThrows
     public void testFindById() {
-        long itemId = 1;
+        Long itemId = 1L;
         ItemDto item = ItemDto.builder()
                 .name("name")
                 .build();
