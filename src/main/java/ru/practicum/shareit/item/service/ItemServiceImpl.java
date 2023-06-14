@@ -21,24 +21,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
-    @Qualifier("inMemoryItemRepository")
-    @NonNull
     private final ItemRepository itemRepository;
     private final UserService userService;
 
     @Override
     public ItemDto createItem(Long userId, ItemDto itemDto) {
-        //Проверяем, что пользователь существует
-        userService.getUserById(userId);
         //Для создания Вещи необходимо проверить заполненность полей
         if (itemDto.getName() == null || itemDto.getDescription() == null || itemDto.getAvailable() == null
                 || itemDto.getName().isBlank() || itemDto.getDescription().isBlank()) {
             throw new ItemValidationException("Заполните все поля.");
         }
 
+        //Проверяем, что пользователь существует
+        userService.getUserById(userId);
+
         Item item = ItemMapper.toItem(itemDto);
         item.setOwnerId(userId);
-        return ItemMapper.toItemDto(itemRepository.createItem(item));
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
@@ -50,14 +49,22 @@ public class ItemServiceImpl implements ItemService {
             throw new WrongItemOwnerException("У вещи с ID = " + itemId + " другой владелец.");
         }
 
-        Item item = ItemMapper.toItem(itemDto);
-        item.setId(itemId);
-        return ItemMapper.toItemDto(itemRepository.patchItem(item));
+        Item itemToUpdate = checkItemId(itemId);
+        if (itemDto.getName() != null) {
+            itemToUpdate.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            itemToUpdate.setDescription(itemDto.getDescription());
+        }
+        if (itemDto.getAvailable() != null) {
+            itemToUpdate.setIsAvailable(itemDto.getAvailable());
+        }
+        return ItemMapper.toItemDto(itemRepository.save(itemToUpdate));
     }
 
     @Override
     public Collection<ItemDto> getItems(Long userId) {
-        return itemRepository.getItems(userId).stream()
+        return itemRepository.findByOwnerId(userId).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
@@ -72,13 +79,13 @@ public class ItemServiceImpl implements ItemService {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemRepository.searchItem(text).stream()
+        return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     private Item checkItemId(Long id) {
-        return itemRepository.getItemById(id).orElseThrow(()
+        return itemRepository.findById(id).orElseThrow(()
                 -> new ItemNotFoundException("Вещь с ID = " + id + " не найдена."));
     }
 }

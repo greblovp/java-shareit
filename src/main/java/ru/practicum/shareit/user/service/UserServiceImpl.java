@@ -20,13 +20,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Qualifier("inMemoryUserRepository")
     @NonNull
     private final UserRepository userRepository;
 
     @Override
     public Collection<UserDto> getUsers() {
-        return userRepository.getUsers().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
@@ -45,7 +44,7 @@ public class UserServiceImpl implements UserService {
         User user = UserMapper.toUser(userDto);
 
         try {
-            return UserMapper.toUserDto(userRepository.createUser(user));
+            return UserMapper.toUserDto(userRepository.save(user));
         } catch (DataIntegrityViolationException e) {
             throw new EmailAlreadyExistsException(e.getMessage());
         }
@@ -53,19 +52,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto patchUser(Long userId, UserDto userDto) {
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.patchUser(userId, user)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID = " + userId + " не найден.")));
+        User userToUpdate = checkUserId(userId);
+        if (userDto.getEmail() != null) {
+            userToUpdate.setEmail(userDto.getEmail());
+        }
+        if (userDto.getName() != null) {
+            userToUpdate.setName(userDto.getName());
+        }
+        return UserMapper.toUserDto(userRepository.save(userToUpdate));
     }
 
     @Override
     public void removeUser(Long userId) {
         checkUserId(userId);
-        userRepository.removeUser(userId);
+        userRepository.deleteById(userId);
     }
 
     private User checkUserId(Long id) {
-        return userRepository.getUserById(id).orElseThrow(()
+        return userRepository.findById(id).orElseThrow(()
                 -> new UserNotFoundException("Пользователь с ID = " + id + " не найден."));
     }
 }
