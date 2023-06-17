@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.service;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -38,7 +37,7 @@ class UserServiceImplTest {
     private User user1 = new User();
     private User user2 = new User();
 
-    UserServiceImplTest () {
+    UserServiceImplTest() {
         user1.setName("name1");
         user1.setEmail("test1@test.test");
 
