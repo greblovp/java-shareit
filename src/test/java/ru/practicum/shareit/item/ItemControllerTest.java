@@ -118,18 +118,20 @@ class ItemControllerTest {
     @Test
     @SneakyThrows
     public void testFindById() {
+        Long userId = 1L;
         Long itemId = 1L;
         ItemOwnerDto item = ItemOwnerDto.builder()
                 .name("name")
                 .build();
-        when(itemService.getItemById(1L, itemId)).thenReturn(item);
+        when(itemService.getItemById(userId, itemId)).thenReturn(item);
 
-        String response = mockMvc.perform(get("/items/" + itemId))
+        String response = mockMvc.perform(get("/items/" + itemId)
+                        .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        verify(itemService).getItemById(1L, itemId);
+        verify(itemService).getItemById(userId, itemId);
         assertEquals(objectMapper.writeValueAsString(item), response);
     }
 
