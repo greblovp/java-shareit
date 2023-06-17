@@ -8,10 +8,7 @@ import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.exception.BookingValidationException;
 import ru.practicum.shareit.booking.exception.BookingWrongStatusException;
 import ru.practicum.shareit.booking.exception.WrongBookingUserException;
-import ru.practicum.shareit.item.exception.ItemNotAvailableException;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.ItemValidationException;
-import ru.practicum.shareit.item.exception.WrongItemOwnerException;
+import ru.practicum.shareit.item.exception.*;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.exception.UserValidationException;
@@ -82,6 +79,18 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIncorrectBookingStatus(final BookingWrongStatusException e) {
         return new ErrorResponse(e.getMessage(), e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleCommentNotAvailable(final CommentNotAvailableException e) {
+        return new ErrorResponse("Комментарий не может быть добавлен", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectCommentAttribute(final CommentValidationException e) {
+        return new ErrorResponse("Ошибка в заполнении полей комментария", e.getMessage());
     }
 
     @ExceptionHandler()

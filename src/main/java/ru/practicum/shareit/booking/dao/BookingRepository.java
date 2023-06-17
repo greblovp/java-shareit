@@ -10,40 +10,41 @@ import java.util.Collection;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    Collection<Booking> findByBookerIdOrderByStartDateDesc(Long bookerId);
+    Collection<Booking> findByBookerIdOrderByEndDateDesc(Long bookerId);
 
-    Collection<Booking> findByBookerIdAndEndDateLessThanEqualOrderByStartDateDesc(Long bookerId, LocalDateTime endDate);
+    Collection<Booking> findByBookerIdAndEndDateLessThanEqualOrderByEndDateDesc(Long bookerId, LocalDateTime endDate);
 
-    Collection<Booking> findByBookerIdAndStartDateGreaterThanEqualOrderByStartDateDesc(Long bookerId, LocalDateTime startDate);
+    Collection<Booking> findByBookerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(Long bookerId, LocalDateTime startDate);
 
-    Collection<Booking> findByBookerIdAndStatusOrderByStartDateDesc(Long bookerId, BookingStatus status);
+    Collection<Booking> findByBookerIdAndStatusOrderByEndDateDesc(Long bookerId, BookingStatus status);
 
     @Query("select b from Booking b " +
             "where b.booker.id = ?1 " +
             "and ?2 >= b.startDate " +
             "and ?2 <= b.endDate " +
-            "order by b.startDate desc")
-    Collection<Booking> findByBookerIdAndCurrent(Long bookerId, LocalDateTime date);
+            "order by b.endDate desc")
+    Collection<Booking> findByBookerIdAndCurrent(Long bookerId, LocalDateTime dateTime);
 
-    Collection<Booking> findByItem_OwnerIdOrderByStartDateDesc(Long ownerId);
+    Collection<Booking> findByItem_OwnerIdOrderByEndDateDesc(Long ownerId);
 
-    Collection<Booking> findByItem_OwnerIdAndEndDateLessThanEqualOrderByStartDateDesc(Long ownerId, LocalDateTime endDate);
+    Collection<Booking> findByItem_OwnerIdAndEndDateLessThanEqualOrderByEndDateDesc(Long ownerId, LocalDateTime endDate);
 
-    Collection<Booking> findByItem_OwnerIdAndStartDateGreaterThanEqualOrderByStartDateDesc(Long ownerId, LocalDateTime startDate);
+    Collection<Booking> findByItem_OwnerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(Long ownerId, LocalDateTime startDate);
 
-    Collection<Booking> findByItem_OwnerIdAndStatusOrderByStartDateDesc(Long ownerId, BookingStatus status);
+    Collection<Booking> findByItem_OwnerIdAndStatusOrderByEndDateDesc(Long ownerId, BookingStatus status);
 
     @Query("select b from Booking b " +
             "where b.item.ownerId = ?1 " +
             "and ?2 >= b.startDate " +
-            "and ?2 <= b.endDate ")
-    Collection<Booking> findByItem_OwnerIdAndCurrent(Long ownerId, LocalDateTime date);
+            "and ?2 <= b.endDate " +
+            "order by b.endDate desc")
+    Collection<Booking> findByItem_OwnerIdAndCurrent(Long ownerId, LocalDateTime dateTime);
 
-    Booking findFirst1ByItemIdAndStartDateGreaterThanOrderByStartDate(Long itemId, LocalDateTime dateTime);
+    Booking findFirst1ByItemIdAndStartDateGreaterThanAndStatusOrderByStartDate(Long itemId, LocalDateTime dateTime, BookingStatus status);
 
-    Booking findFirst1ByItemIdAndStartDateLessThanEqualOrderByStartDateDesc(Long itemId, LocalDateTime dateTime);
+    Booking findFirst1ByItemIdAndStartDateLessThanEqualAndStatusOrderByStartDateDesc(Long itemId, LocalDateTime dateTime, BookingStatus status);
 
 
-    Collection<Booking> findByItemId(Long itemId);
+    Collection<Booking> findByItemIdAndBookerIdAndEndDateLessThanAndStatus(Long itemId, Long bookerId, LocalDateTime dateTime, BookingStatus status);
 
 }

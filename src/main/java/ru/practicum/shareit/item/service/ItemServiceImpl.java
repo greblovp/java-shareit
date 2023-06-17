@@ -4,16 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.dao.CommentRepository;
 import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.dto.ItemOwnerDto;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.exception.CommentNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.ItemValidationException;
 import ru.practicum.shareit.item.exception.WrongItemOwnerException;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
@@ -30,6 +34,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
     private final UserService userService;
+    private final CommentRepository commentRepository;
 
     @Transactional
     @Override
@@ -75,16 +80,20 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemOwnerDto> getItems(Long userId) {
         return itemRepository.findByOwnerIdOrderById(userId).stream()
                 .map(this::getItemLastAndNextBooking)
+                .map(this::getComments)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ItemOwnerDto getItemById(Long userId, Long itemId) {
         Item itemToGet = checkItemId(itemId);
+        ItemOwnerDto itemOwnerDto;
         if (userId.equals(itemToGet.getOwnerId())) {
-            return getItemLastAndNextBooking(itemToGet);
+            itemOwnerDto = getItemLastAndNextBooking(itemToGet);
+        } else {
+            itemOwnerDto = ItemMapper.toItemOwnerDto(itemToGet);
         }
-        return ItemMapper.toItemOwnerDto(itemToGet);
+        return getComments(itemOwnerDto);
     }
 
     @Override
@@ -97,6 +106,23 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    @Override
+    public CommentDto addComment(Long userId, long itemId, CommentDto commentDto) {
+        UserDto userDto = userService.getUserById(userId);
+        Item item = checkItemId(itemId);
+
+        Collection<Booking> bookings = bookingRepository.findByItemIdAndBookerIdAndEndDateLessThanAndStatus(itemId, userId,
+                LocalDateTime.now(), BookingStatus.APPROVED);
+        if (bookings.isEmpty()) {
+            throw new CommentNotAvailableException("У пользователя с ID = " + userId + " нет завершенных бронирований вещи с ID = " + itemId);
+        }
+
+        Comment savedComment = commentRepository.save(CommentMapper.toComment(commentDto, item, UserMapper.toUser(userDto)));
+
+        return CommentMapper.toCommentDto(savedComment);
+    }
+
     private Item checkItemId(Long id) {
         return itemRepository.findById(id).orElseThrow(()
                 -> new ItemNotFoundException("Вещь с ID = " + id + " не найдена."));
@@ -106,13 +132,19 @@ public class ItemServiceImpl implements ItemService {
         ItemOwnerDto itemOwnerDto = ItemMapper.toItemOwnerDto(item);
 
         Optional<Booking> lastBookingOptional = Optional.ofNullable(
-                bookingRepository.findFirst1ByItemIdAndStartDateLessThanEqualOrderByStartDateDesc(item.getId(), LocalDateTime.now()));
+                bookingRepository.findFirst1ByItemIdAndStartDateLessThanEqualAndStatusOrderByStartDateDesc(item.getId(), LocalDateTime.now(), BookingStatus.APPROVED));
         Optional<Booking> nextBookingOptional = Optional.ofNullable(
-                bookingRepository.findFirst1ByItemIdAndStartDateGreaterThanOrderByStartDate(item.getId(), LocalDateTime.now()));
+                bookingRepository.findFirst1ByItemIdAndStartDateGreaterThanAndStatusOrderByStartDate(item.getId(), LocalDateTime.now(), BookingStatus.APPROVED));
 
         lastBookingOptional.ifPresent(booking -> itemOwnerDto.setLastBooking(BookingMapper.toBookingForItemDto(booking)));
         nextBookingOptional.ifPresent(booking -> itemOwnerDto.setNextBooking(BookingMapper.toBookingForItemDto(booking)));
 
         return itemOwnerDto;
+    }
+
+    private ItemOwnerDto getComments(ItemOwnerDto dto) {
+        commentRepository.findAllByItemIdOrderById(dto.getId())
+                .forEach(comment -> dto.getComments().add(CommentMapper.toCommentDto(comment)));
+        return dto;
     }
 }

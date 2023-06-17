@@ -110,22 +110,22 @@ public class BookingServiceImpl implements BookingService {
         Collection<Booking> bookingList;
         switch (bookingState) {
             case ALL:
-                bookingList = bookingRepository.findByBookerIdOrderByStartDateDesc(userId);
+                bookingList = bookingRepository.findByBookerIdOrderByEndDateDesc(userId);
                 break;
             case CURRENT:
                 bookingList = bookingRepository.findByBookerIdAndCurrent(userId, LocalDateTime.now());
                 break;
             case PAST:
-                bookingList = bookingRepository.findByBookerIdAndEndDateLessThanEqualOrderByStartDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByBookerIdAndEndDateLessThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
                 break;
             case FUTURE:
-                bookingList = bookingRepository.findByBookerIdAndStartDateGreaterThanEqualOrderByStartDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByBookerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
                 break;
             case WAITING:
-                bookingList = bookingRepository.findByBookerIdAndStatusOrderByStartDateDesc(userId, BookingStatus.WAITING);
+                bookingList = bookingRepository.findByBookerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.WAITING);
                 break;
             case REJECTED:
-                bookingList = bookingRepository.findByBookerIdAndStatusOrderByStartDateDesc(userId, BookingStatus.REJECTED);
+                bookingList = bookingRepository.findByBookerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.REJECTED);
                 break;
             default:
                 bookingList = new ArrayList<>();
@@ -141,22 +141,22 @@ public class BookingServiceImpl implements BookingService {
         Collection<Booking> bookingList;
         switch (bookingState) {
             case ALL:
-                bookingList = bookingRepository.findByItem_OwnerIdOrderByStartDateDesc(userId);
+                bookingList = bookingRepository.findByItem_OwnerIdOrderByEndDateDesc(userId);
                 break;
             case CURRENT:
                 bookingList = bookingRepository.findByItem_OwnerIdAndCurrent(userId, LocalDateTime.now());
                 break;
             case PAST:
-                bookingList = bookingRepository.findByItem_OwnerIdAndEndDateLessThanEqualOrderByStartDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByItem_OwnerIdAndEndDateLessThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
                 break;
             case FUTURE:
-                bookingList = bookingRepository.findByItem_OwnerIdAndStartDateGreaterThanEqualOrderByStartDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByItem_OwnerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
                 break;
             case WAITING:
-                bookingList = bookingRepository.findByItem_OwnerIdAndStatusOrderByStartDateDesc(userId, BookingStatus.WAITING);
+                bookingList = bookingRepository.findByItem_OwnerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.WAITING);
                 break;
             case REJECTED:
-                bookingList = bookingRepository.findByItem_OwnerIdAndStatusOrderByStartDateDesc(userId, BookingStatus.REJECTED);
+                bookingList = bookingRepository.findByItem_OwnerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.REJECTED);
                 break;
             default:
                 bookingList = new ArrayList<>();
