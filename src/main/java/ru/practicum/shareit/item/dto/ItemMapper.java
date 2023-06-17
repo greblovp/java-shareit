@@ -12,6 +12,15 @@ public class ItemMapper {
                 .build();
     }
 
+    public static ItemOwnerDto toItemOwnerDto(Item item) {
+        return ItemOwnerDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getIsAvailable())
+                .build();
+    }
+
     public static Item toItem(ItemDto itemDto) {
         Item item = new Item();
         item.setId(itemDto.getId());

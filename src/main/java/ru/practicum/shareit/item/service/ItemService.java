@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemOwnerDto;
 
 import java.util.Collection;
 
@@ -9,9 +10,9 @@ public interface ItemService {
 
     ItemDto patchItem(Long userId, Long itemId, ItemDto itemDto);
 
-    Collection<ItemDto> getItems(Long userId);
+    Collection<ItemOwnerDto> getItems(Long userId);
 
-    ItemDto getItemById(Long itemId);
+    ItemOwnerDto getItemById(Long userId, Long itemId);
 
     Collection<ItemDto> searchItem(String text);
 }

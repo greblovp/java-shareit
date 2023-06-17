@@ -2,9 +2,9 @@ package ru.practicum.shareit.user.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(checkUserId(userId));
     }
 
+    @Transactional
     @Override
     public UserDto createUser(UserDto userDto) {
         if (userDto.getEmail() == null) {
@@ -50,6 +52,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Transactional
     @Override
     public UserDto patchUser(Long userId, UserDto userDto) {
         User userToUpdate = checkUserId(userId);
@@ -62,6 +65,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(userRepository.save(userToUpdate));
     }
 
+    @Transactional
     @Override
     public void removeUser(Long userId) {
         checkUserId(userId);

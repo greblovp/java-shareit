@@ -1,29 +1,37 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.dao.BookingRepository;
+import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemOwnerDto;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.ItemValidationException;
 import ru.practicum.shareit.item.exception.WrongItemOwnerException;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
+    private final BookingRepository bookingRepository;
     private final UserService userService;
 
+    @Transactional
     @Override
     public ItemDto createItem(Long userId, ItemDto itemDto) {
         //Для создания Вещи необходимо проверить заполненность полей
@@ -40,6 +48,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
+    @Transactional
     @Override
     public ItemDto patchItem(Long userId, Long itemId, ItemDto itemDto) {
         //Проверяем, что пользователь существует
@@ -63,15 +72,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getItems(Long userId) {
-        return itemRepository.findByOwnerId(userId).stream()
-                .map(ItemMapper::toItemDto)
+    public Collection<ItemOwnerDto> getItems(Long userId) {
+        return itemRepository.findByOwnerIdOrderById(userId).stream()
+                .map(this::getItemLastAndNextBooking)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemDto getItemById(Long itemId) {
-        return ItemMapper.toItemDto(checkItemId(itemId));
+    public ItemOwnerDto getItemById(Long userId, Long itemId) {
+        Item itemToGet = checkItemId(itemId);
+        if (userId.equals(itemToGet.getOwnerId())) {
+            return getItemLastAndNextBooking(itemToGet);
+        }
+        return ItemMapper.toItemOwnerDto(itemToGet);
     }
 
     @Override
@@ -87,5 +100,19 @@ public class ItemServiceImpl implements ItemService {
     private Item checkItemId(Long id) {
         return itemRepository.findById(id).orElseThrow(()
                 -> new ItemNotFoundException("Вещь с ID = " + id + " не найдена."));
+    }
+
+    private ItemOwnerDto getItemLastAndNextBooking(Item item) {
+        ItemOwnerDto itemOwnerDto = ItemMapper.toItemOwnerDto(item);
+
+        Optional<Booking> lastBookingOptional = Optional.ofNullable(
+                bookingRepository.findFirst1ByItemIdAndStartDateLessThanEqualOrderByStartDateDesc(item.getId(), LocalDateTime.now()));
+        Optional<Booking> nextBookingOptional = Optional.ofNullable(
+                bookingRepository.findFirst1ByItemIdAndStartDateGreaterThanOrderByStartDate(item.getId(), LocalDateTime.now()));
+
+        lastBookingOptional.ifPresent(booking -> itemOwnerDto.setLastBooking(BookingMapper.toBookingForItemDto(booking)));
+        nextBookingOptional.ifPresent(booking -> itemOwnerDto.setNextBooking(BookingMapper.toBookingForItemDto(booking)));
+
+        return itemOwnerDto;
     }
 }
