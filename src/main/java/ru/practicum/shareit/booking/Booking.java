@@ -48,6 +48,9 @@ public class Booking {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        int result = getItem().hashCode();
+        result = 31 * result + getBooker().hashCode();
+        result = 31 * result + getStartDate().hashCode();
+        return result;
     }
 }

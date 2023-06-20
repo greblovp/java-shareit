@@ -35,6 +35,8 @@ public class Item {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        int result = getName().hashCode();
+        result = (int) (31 * result + getOwnerId());
+        return result;
     }
 }

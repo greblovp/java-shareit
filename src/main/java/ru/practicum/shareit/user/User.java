@@ -29,6 +29,8 @@ public class User {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        int result = getEmail().hashCode();
+        result = 31 * result;
+        return result;
     }
 }
