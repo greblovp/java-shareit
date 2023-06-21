@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemOwnerDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -96,7 +97,7 @@ class ItemControllerTest {
     @Test
     void testGetItems() {
         Long userId = 1L;
-        ItemDto item = ItemDto.builder()
+        ItemOwnerDto item = ItemOwnerDto.builder()
                 .name("name")
                 .build();
         when(itemService.getItems(userId)).thenReturn(List.of(item));
@@ -117,18 +118,20 @@ class ItemControllerTest {
     @Test
     @SneakyThrows
     public void testFindById() {
+        Long userId = 1L;
         Long itemId = 1L;
-        ItemDto item = ItemDto.builder()
+        ItemOwnerDto item = ItemOwnerDto.builder()
                 .name("name")
                 .build();
-        when(itemService.getItemById(itemId)).thenReturn(item);
+        when(itemService.getItemById(userId, itemId)).thenReturn(item);
 
-        String response = mockMvc.perform(get("/items/" + itemId))
+        String response = mockMvc.perform(get("/items/" + itemId)
+                        .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        verify(itemService).getItemById(itemId);
+        verify(itemService).getItemById(userId, itemId);
         assertEquals(objectMapper.writeValueAsString(item), response);
     }
 

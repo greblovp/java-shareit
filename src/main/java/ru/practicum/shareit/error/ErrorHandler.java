@@ -4,9 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.ItemValidationException;
-import ru.practicum.shareit.item.exception.WrongItemOwnerException;
+import ru.practicum.shareit.booking.exception.BookingNotFoundException;
+import ru.practicum.shareit.booking.exception.BookingValidationException;
+import ru.practicum.shareit.booking.exception.BookingWrongStatusException;
+import ru.practicum.shareit.booking.exception.WrongBookingUserException;
+import ru.practicum.shareit.item.exception.*;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.exception.UserValidationException;
@@ -47,6 +49,48 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleIncorrectItemOwner(final WrongItemOwnerException e) {
         return new ErrorResponse("Некорректный владелец вещи", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleItemNotAvailable(final ItemNotAvailableException e) {
+        return new ErrorResponse("Вещь недоступна для бронирования", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleBookingNotFound(final BookingNotFoundException e) {
+        return new ErrorResponse("Вещь не найдена", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleIncorrectBookingUser(final WrongBookingUserException e) {
+        return new ErrorResponse("Некорректный пользователь", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectBookingAttribute(final BookingValidationException e) {
+        return new ErrorResponse("Ошибка в заполнении полей бронирования", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectBookingStatus(final BookingWrongStatusException e) {
+        return new ErrorResponse(e.getMessage(), e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleCommentNotAvailable(final CommentNotAvailableException e) {
+        return new ErrorResponse("Комментарий не может быть добавлен", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectCommentAttribute(final CommentValidationException e) {
+        return new ErrorResponse("Ошибка в заполнении полей комментария", e.getMessage());
     }
 
     @ExceptionHandler()
