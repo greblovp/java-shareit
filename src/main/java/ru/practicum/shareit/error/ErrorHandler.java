@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.exception.BookingValidationException;
 import ru.practicum.shareit.booking.exception.BookingWrongStatusException;
 import ru.practicum.shareit.booking.exception.WrongBookingUserException;
 import ru.practicum.shareit.item.exception.*;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.exception.UserValidationException;
@@ -98,4 +99,12 @@ public class ErrorHandler {
     public ErrorResponse handleError(final Throwable e) {
         return new ErrorResponse("Произошла непредвиденная ошибка.", e.getMessage());
     }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleItemRequestNotFound(final ItemRequestNotFoundException e) {
+        return new ErrorResponse("Запрос на вещь не найден", e.getMessage());
+    }
+
+
 }

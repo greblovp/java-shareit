@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemOwnerDto;
+import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -97,7 +97,7 @@ class ItemControllerTest {
     @Test
     void testGetItems() {
         Long userId = 1L;
-        ItemOwnerDto item = ItemOwnerDto.builder()
+        ItemExtendedDto item = ItemExtendedDto.builder()
                 .name("name")
                 .build();
         when(itemService.getItems(userId)).thenReturn(List.of(item));
@@ -120,7 +120,7 @@ class ItemControllerTest {
     public void testFindById() {
         Long userId = 1L;
         Long itemId = 1L;
-        ItemOwnerDto item = ItemOwnerDto.builder()
+        ItemExtendedDto item = ItemExtendedDto.builder()
                 .name("name")
                 .build();
         when(itemService.getItemById(userId, itemId)).thenReturn(item);
