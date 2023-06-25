@@ -36,9 +36,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemExtendedDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public Collection<ItemExtendedDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId,
+                                                @RequestParam(defaultValue = "0") Integer from,
+                                                @RequestParam(defaultValue = "10") Integer size) {
         log.info("Вывести все вещи пользователя ID = {}", userId);
-        return itemService.getItems(userId);
+        return itemService.getItems(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -48,9 +50,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchItem(@RequestParam String text) {
+    public Collection<ItemDto> searchItem(@RequestParam String text,
+                                          @RequestParam(defaultValue = "0") Integer from,
+                                          @RequestParam(defaultValue = "10") Integer size) {
         log.info("Вывести вещи, содержащие в названии или описании текст {}", text);
-        return itemService.searchItem(text);
+        return itemService.searchItem(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

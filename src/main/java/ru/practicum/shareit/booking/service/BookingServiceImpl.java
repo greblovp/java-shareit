@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -21,6 +23,7 @@ import ru.practicum.shareit.item.exception.WrongItemOwnerException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.util.PageGetter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -106,26 +109,28 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> getAllBookings(Long userId, BookingState bookingState) {
+    public Collection<BookingDto> getAllBookings(Long userId, BookingState bookingState, Integer from, Integer size) {
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.by("endDate").descending());
+
         Collection<Booking> bookingList;
         switch (bookingState) {
             case ALL:
-                bookingList = bookingRepository.findByBookerIdOrderByEndDateDesc(userId);
+                bookingList = bookingRepository.findByBookerId(userId, page).getContent();
                 break;
             case CURRENT:
-                bookingList = bookingRepository.findByBookerIdAndCurrent(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByBookerIdAndCurrent(userId, LocalDateTime.now(), page).getContent();
                 break;
             case PAST:
-                bookingList = bookingRepository.findByBookerIdAndEndDateLessThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByBookerIdAndEndDateLessThanEqual(userId, LocalDateTime.now(), page).getContent();
                 break;
             case FUTURE:
-                bookingList = bookingRepository.findByBookerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByBookerIdAndStartDateGreaterThanEqual(userId, LocalDateTime.now(), page).getContent();
                 break;
             case WAITING:
-                bookingList = bookingRepository.findByBookerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.WAITING);
+                bookingList = bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, page).getContent();
                 break;
             case REJECTED:
-                bookingList = bookingRepository.findByBookerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.REJECTED);
+                bookingList = bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, page).getContent();
                 break;
             default:
                 bookingList = new ArrayList<>();
@@ -137,26 +142,28 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> getAllBookingsByOwner(Long userId, BookingState bookingState) {
+    public Collection<BookingDto> getAllBookingsByOwner(Long userId, BookingState bookingState, Integer from, Integer size) {
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.by("endDate").descending());
+
         Collection<Booking> bookingList;
         switch (bookingState) {
             case ALL:
-                bookingList = bookingRepository.findByItem_OwnerIdOrderByEndDateDesc(userId);
+                bookingList = bookingRepository.findByItem_OwnerId(userId, page).getContent();
                 break;
             case CURRENT:
-                bookingList = bookingRepository.findByItem_OwnerIdAndCurrent(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByItem_OwnerIdAndCurrent(userId, LocalDateTime.now(), page).getContent();
                 break;
             case PAST:
-                bookingList = bookingRepository.findByItem_OwnerIdAndEndDateLessThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByItem_OwnerIdAndEndDateLessThanEqual(userId, LocalDateTime.now(), page).getContent();
                 break;
             case FUTURE:
-                bookingList = bookingRepository.findByItem_OwnerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(userId, LocalDateTime.now());
+                bookingList = bookingRepository.findByItem_OwnerIdAndStartDateGreaterThanEqual(userId, LocalDateTime.now(), page).getContent();
                 break;
             case WAITING:
-                bookingList = bookingRepository.findByItem_OwnerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.WAITING);
+                bookingList = bookingRepository.findByItem_OwnerIdAndStatus(userId, BookingStatus.WAITING, page).getContent();
                 break;
             case REJECTED:
-                bookingList = bookingRepository.findByItem_OwnerIdAndStatusOrderByEndDateDesc(userId, BookingStatus.REJECTED);
+                bookingList = bookingRepository.findByItem_OwnerIdAndStatus(userId, BookingStatus.REJECTED, page).getContent();
                 break;
             default:
                 bookingList = new ArrayList<>();

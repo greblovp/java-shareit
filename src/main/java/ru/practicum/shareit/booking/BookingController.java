@@ -44,7 +44,9 @@ public class BookingController {
 
     @GetMapping
     public Collection<BookingDto> getBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @RequestParam(defaultValue = "ALL") String state) {
+                                              @RequestParam(defaultValue = "ALL") String state,
+                                              @RequestParam(defaultValue = "0") Integer from,
+                                              @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получить бронирования пользователя ID = {} в состоянии {}", userId, state);
         BookingState bookingState;
         try {
@@ -52,12 +54,14 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             throw new BookingWrongStatusException("Unknown state: " + state);
         }
-        return bookingService.getAllBookings(userId, bookingState);
+        return bookingService.getAllBookings(userId, bookingState, from, size);
     }
 
     @GetMapping("/owner")
     public Collection<BookingDto> getBookingsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                     @RequestParam(defaultValue = "ALL") String state) {
+                                                     @RequestParam(defaultValue = "ALL") String state,
+                                                     @RequestParam(defaultValue = "0") Integer from,
+                                                     @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получить бронирования владельца ID = {} в состоянии {}", userId, state);
         BookingState bookingState;
         try {
@@ -65,7 +69,7 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             throw new BookingWrongStatusException("Unknown state: " + state);
         }
-        return bookingService.getAllBookingsByOwner(userId, bookingState);
+        return bookingService.getAllBookingsByOwner(userId, bookingState, from, size);
     }
 
     private void generateCustomValidateException(BookingDto bookingDto, BindingResult bindingResult) {

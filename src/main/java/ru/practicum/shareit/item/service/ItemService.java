@@ -11,11 +11,11 @@ public interface ItemService {
 
     ItemDto patchItem(Long userId, Long itemId, ItemDto itemDto);
 
-    Collection<ItemExtendedDto> getItems(Long userId);
+    Collection<ItemExtendedDto> getItems(Long userId, Integer from, Integer size);
 
     ItemExtendedDto getItemById(Long userId, Long itemId);
 
-    Collection<ItemDto> searchItem(String text);
+    Collection<ItemDto> searchItem(String text, Integer from, Integer size);
 
     CommentDto addComment(Long userId, long itemId, CommentDto commentDto);
 }

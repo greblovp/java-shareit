@@ -1,11 +1,10 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.error.WrongPageParameterException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemMapper;
@@ -17,6 +16,7 @@ import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.util.PageGetter;
 
 import java.util.Collection;
 
@@ -78,15 +78,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         //Проверяем, что пользователь существует
         userService.getUserById(userId);
 
-        if (from < 0) {
-            throw new WrongPageParameterException("from — индекс первого элемента, не может быть отрицательным");
-        }
-
-        if (size < 1) {
-            throw new WrongPageParameterException("size — количество элементов для отображения, не может быть меньше 0");
-        }
-
-        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by("createdDate").descending());
+        Pageable page = PageGetter.getPageRequest(from, size,  Sort.by("createdDate").descending());
 
         Collection<ItemRequest> itemRequests = itemRequestRepository.findAllByRequestorIdNot(userId, page).getContent();
 

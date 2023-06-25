@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -19,6 +21,7 @@ import ru.practicum.shareit.item.exception.WrongItemOwnerException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.util.PageGetter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -77,8 +80,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemExtendedDto> getItems(Long userId) {
-        return itemRepository.findByOwnerIdOrderById(userId).stream()
+    public Collection<ItemExtendedDto> getItems(Long userId, Integer from, Integer size) {
+
+        Pageable page = PageGetter.getPageRequest(from, size,  Sort.by("id").ascending());
+
+        return itemRepository.findByOwnerId(userId, page).getContent().stream()
                 .map(this::getItemLastAndNextBooking)
                 .map(this::getComments)
                 .collect(Collectors.toList());
@@ -97,11 +103,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> searchItem(String text) {
+    public Collection<ItemDto> searchItem(String text, Integer from, Integer size) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemRepository.search(text).stream()
+
+        Pageable page = PageGetter.getPageRequest(from, size,  Sort.unsorted());
+
+        return itemRepository.search(text, page).getContent().stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
