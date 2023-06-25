@@ -78,7 +78,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         //Проверяем, что пользователь существует
         userService.getUserById(userId);
 
-        Pageable page = PageGetter.getPageRequest(from, size,  Sort.by("createdDate").descending());
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.by("createdDate").descending());
 
         Collection<ItemRequest> itemRequests = itemRequestRepository.findAllByRequestorIdNot(userId, page).getContent();
 

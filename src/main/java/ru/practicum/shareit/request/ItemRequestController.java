@@ -44,8 +44,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public Collection<ItemRequestDto> getAllItemRequests(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                        @RequestParam(defaultValue = "0") Integer from,
-                                                        @RequestParam(defaultValue = "10") Integer size) {
+                                                         @RequestParam(defaultValue = "0") Integer from,
+                                                         @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получить все запросы на вещи для пользователя ID = {} с пагинацией", userId);
         return itemRequestService.getAllItemRequests(userId, from, size);
     }

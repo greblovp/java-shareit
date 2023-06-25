@@ -82,7 +82,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemExtendedDto> getItems(Long userId, Integer from, Integer size) {
 
-        Pageable page = PageGetter.getPageRequest(from, size,  Sort.by("id").ascending());
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.by("id").ascending());
 
         return itemRepository.findByOwnerId(userId, page).getContent().stream()
                 .map(this::getItemLastAndNextBooking)
@@ -108,7 +108,7 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
 
-        Pageable page = PageGetter.getPageRequest(from, size,  Sort.unsorted());
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.unsorted());
 
         return itemRepository.search(text, page).getContent().stream()
                 .map(ItemMapper::toItemDto)
