@@ -7,6 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.exception.BookingValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.exception.ItemRequestValidationException;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import javax.validation.Valid;
@@ -54,7 +55,7 @@ public class ItemRequestController {
         if (bindingResult.hasErrors()) {
             log.warn("Ошибка в заполнении поля {} - {}. Запрос - {}", bindingResult.getFieldError().getField(),
                     bindingResult.getFieldError().getDefaultMessage(), itemRequestDto);
-            throw new BookingValidationException("Ошибка в заполнении поля " + bindingResult.getFieldError().getField() + " - " +
+            throw new ItemRequestValidationException("Ошибка в заполнении поля " + bindingResult.getFieldError().getField() + " - " +
                     bindingResult.getFieldError().getDefaultMessage());
         }
     }

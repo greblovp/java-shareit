@@ -10,6 +10,7 @@ import ru.practicum.shareit.booking.exception.BookingWrongStatusException;
 import ru.practicum.shareit.booking.exception.WrongBookingUserException;
 import ru.practicum.shareit.item.exception.*;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.request.exception.ItemRequestValidationException;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.exception.UserValidationException;
@@ -74,6 +75,12 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIncorrectBookingAttribute(final BookingValidationException e) {
         return new ErrorResponse("Ошибка в заполнении полей бронирования", e.getMessage());
+    }
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectItemRequestAttribute(final ItemRequestValidationException e) {
+        return new ErrorResponse("Ошибка в заполнении полей запроса", e.getMessage());
     }
 
     @ExceptionHandler()
