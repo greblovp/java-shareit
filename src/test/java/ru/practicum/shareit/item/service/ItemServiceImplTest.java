@@ -11,6 +11,8 @@ import org.springframework.test.context.TestPropertySource;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dao.BookingRepository;
+import ru.practicum.shareit.booking.dto.BookingForItemDto;
+import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.CommentRepository;
@@ -275,6 +277,26 @@ class ItemServiceImplTest {
         em.persist(itemEntity);
         em.flush();
         Long itemId = itemEntity.getId();
+
+        BookingForItemDto  bookingForItemDto = BookingForItemDto.builder()
+                .id(1L)
+                .start(LocalDateTime.now().toString())
+                .end(LocalDateTime.now().plusDays(1).toString())
+                .bookerId(userId)
+                .build();
+        bookingForItemDto.getBookerId();
+        bookingForItemDto.getId();
+        bookingForItemDto.getStart();
+        bookingForItemDto.getEnd();
+
+        Booking bookingEntity = new Booking();
+        bookingEntity.setId(1L);
+        bookingEntity.setBooker(userEntity);
+        bookingEntity.setStartDate(LocalDateTime.now());
+        bookingEntity.setEndDate(LocalDateTime.now().plusDays(1));
+        BookingMapper.toBookingForItemDto(bookingEntity);
+
+
 
         // when
         ItemExtendedDto targetItemDto = itemService.getItemById(userId, itemId);

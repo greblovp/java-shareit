@@ -9,7 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.exception.BookingNotFoundException;
+import ru.practicum.shareit.booking.exception.WrongBookingUserException;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -85,7 +88,50 @@ class BookingControllerTest {
 
         //then
         verify(bookingService, never()).createBooking(anyLong(), any());
+    }
 
+    @Test
+    @SneakyThrows
+    public void testCreateBooking_whenWrongBookingUser() {
+        // given
+        Long itemId = 1L;
+        Long userId = 2L;
+        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .end(endDate.toString())
+                .build();
+
+        when(bookingService.createBooking(userId, bookingDto)).thenThrow(new WrongBookingUserException("error"));
+
+        // when
+        mockMvc.perform(post("/bookings")
+                        .contentType("application/json")
+                        .header("X-Sharer-User-Id", userId)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testCreateBooking_whenItemNotAvailable() {
+        // given
+        Long itemId = 1L;
+        Long userId = 2L;
+        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .end(endDate.toString())
+                .build();
+
+        when(bookingService.createBooking(userId, bookingDto)).thenThrow(new ItemNotAvailableException("error"));
+
+        // when
+        mockMvc.perform(post("/bookings")
+                        .contentType("application/json")
+                        .header("X-Sharer-User-Id", userId)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -119,6 +165,33 @@ class BookingControllerTest {
         verify(bookingService).getBooking(userId, bookingId);
         assertEquals(objectMapper.writeValueAsString(bookingDto), response);
     }
+
+    @Test
+    @SneakyThrows
+    public void testGetBooking_whenNotFound() {
+        // given
+        Long itemId = 1L;
+        Long bookingId = 3L;
+        Long userId = 2L;
+        LocalDateTime startDate = LocalDateTime.now().plusDays(1);
+        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
+        BookingDto bookingDto = BookingDto.builder()
+                .itemId(itemId)
+                .start(startDate.toString())
+                .end(endDate.toString())
+                .build();
+
+        when(bookingService.getBooking(userId, bookingId)).thenThrow(new BookingNotFoundException("error"));
+
+        // when
+        mockMvc.perform(get("/bookings/{bookingId}", bookingId)
+                        .contentType("application/json")
+                        .header("X-Sharer-User-Id", userId)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isNotFound());
+    }
+
+
 
     @Test
     @SneakyThrows

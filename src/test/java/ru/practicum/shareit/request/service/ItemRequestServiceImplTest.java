@@ -13,6 +13,7 @@ import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dao.ItemRequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
@@ -23,6 +24,7 @@ import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -75,6 +77,57 @@ class ItemRequestServiceImplTest {
         assertThat(persistedItemRequest.getDescription(), equalTo(sourceItemRequestDto.getDescription()));
         assertThat(persistedItemRequest.getRequestor(), equalTo(userEntity));
 
+        verify(userService).getUserById(userId);
+    }
+
+    @Test
+    public void testGetItemRequestById() {
+        // given
+        ItemRequestDto sourceItemRequestDto = ItemRequestDto.builder().description("description").build();
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+
+        User userEntity = UserMapper.toUser(sourceUserDto);
+        em.persist(userEntity);
+        em.flush();
+        Long userId = userEntity.getId();
+
+        ItemRequest itemRequestEntity = ItemRequestMapper.toItemRequest(sourceItemRequestDto,  userEntity);
+        em.persist(itemRequestEntity);
+        em.flush();
+        Long itemRequestId = itemRequestEntity.getId();
+
+        sourceUserDto.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(sourceUserDto);
+
+        // when
+        ItemRequestDto targetItemRequestDto = itemRequestService.getItemRequestById(userId, itemRequestId);
+
+        // then
+        assertThat(targetItemRequestDto.getId(), notNullValue());
+        assertThat(targetItemRequestDto.getDescription(), equalTo(sourceItemRequestDto.getDescription()));
+        verify(userService).getUserById(userId);
+    }
+
+
+    @Test
+    public void testGetItemRequestById_whenItemRequestNotFound() {
+        // given
+        Long itemRequestId = 2L;
+
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+
+        User userEntity = UserMapper.toUser(sourceUserDto);
+        em.persist(userEntity);
+        em.flush();
+        Long userId = userEntity.getId();
+
+        sourceUserDto.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(sourceUserDto);
+
+        // when & then
+        assertThatThrownBy(() -> itemRequestService.getItemRequestById(userId, itemRequestId))
+                .isInstanceOf(ItemRequestNotFoundException.class)
+                .hasMessage("Запрос на  вещь с ID = " + itemRequestId + " не найден.");
         verify(userService).getUserById(userId);
     }
 

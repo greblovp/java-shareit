@@ -183,20 +183,14 @@ public class BookingServiceImpl implements BookingService {
         //Проверяема конечная дата бронирования
         LocalDateTime start = booking.getStartDate();
         LocalDateTime end = booking.getEndDate();
-        if (start == null) {
-            throw new BookingValidationException("Дата начала бронирования должна быть заполнена");
-        }
-        if (end == null) {
-            throw new BookingValidationException("Дата окончания бронирования должна быть заполнена");
-        }
         if (end.isBefore(start)) {
             throw new BookingValidationException("Дата оконачания бронирования не может быть раньше даты начала");
         }
-        if (start.isBefore(LocalDateTime.now())) {
-            throw new BookingValidationException("Дата начала бронирования не может быть раньше текущей даты");
-        }
         if (end.isBefore(LocalDateTime.now())) {
             throw new BookingValidationException("Дата оконачания бронирования не может быть раньше текущей даты");
+        }
+        if (start.isBefore(LocalDateTime.now())) {
+            throw new BookingValidationException("Дата начала бронирования не может быть раньше текущей даты");
         }
         if (end.isEqual(start)) {
             throw new BookingValidationException("Дата начала и оконачания бронирования не могут совпадать");

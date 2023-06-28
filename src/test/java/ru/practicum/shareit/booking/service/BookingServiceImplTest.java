@@ -506,6 +506,62 @@ class BookingServiceImplTest {
     }
 
     @Test
+    public void testGetAllBookings_whenNoBookings_PAST() {
+        // given
+        Long userBookerId = 1L;
+        BookingState bookingState = BookingState.PAST;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when & then
+        assertThatThrownBy(() -> bookingService.getAllBookings(userBookerId, bookingState, from, size))
+                .isInstanceOf(BookingNotFoundException.class)
+                .hasMessage("У пользователя с ID = " + userBookerId + " нет бронирований");
+    }
+
+    @Test
+    public void testGetAllBookings_whenNoBookings_WAITING() {
+        // given
+        Long userBookerId = 1L;
+        BookingState bookingState = BookingState.WAITING;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when & then
+        assertThatThrownBy(() -> bookingService.getAllBookings(userBookerId, bookingState, from, size))
+                .isInstanceOf(BookingNotFoundException.class)
+                .hasMessage("У пользователя с ID = " + userBookerId + " нет бронирований");
+    }
+
+    @Test
+    public void testGetAllBookings_whenNoBookings_CURRENT() {
+        // given
+        Long userBookerId = 1L;
+        BookingState bookingState = BookingState.CURRENT;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when & then
+        assertThatThrownBy(() -> bookingService.getAllBookings(userBookerId, bookingState, from, size))
+                .isInstanceOf(BookingNotFoundException.class)
+                .hasMessage("У пользователя с ID = " + userBookerId + " нет бронирований");
+    }
+
+    @Test
+    public void testGetAllBookings_whenNoBookings_REJECTED() {
+        // given
+        Long userBookerId = 1L;
+        BookingState bookingState = BookingState.REJECTED;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when & then
+        assertThatThrownBy(() -> bookingService.getAllBookings(userBookerId, bookingState, from, size))
+                .isInstanceOf(BookingNotFoundException.class)
+                .hasMessage("У пользователя с ID = " + userBookerId + " нет бронирований");
+    }
+
+    @Test
     void testGetAllBookingsByOwner_whenBookingState_WAITING() {
         // given
         ItemDto sourceItemDto = makeItemDto("item1", "description", true);
@@ -561,6 +617,236 @@ class BookingServiceImplTest {
             ));
         }
     }
+
+    @Test
+    void testGetAllBookingsByOwner_whenBookingState_REJECTED() {
+        // given
+        ItemDto sourceItemDto = makeItemDto("item1", "description", true);
+        UserDto sourceUserOwnerDto = makeUserDto("ivan@email", "Ivan");
+        UserDto sourceUserBookerDto = makeUserDto("petr@email", "Petr");
+        LocalDateTime starDate = LocalDateTime.now().plusDays(1);
+        LocalDateTime endDate = LocalDateTime.now().plusDays(5);
+
+        User userOwnerEntity = UserMapper.toUser(sourceUserOwnerDto);
+        em.persist(userOwnerEntity);
+        em.flush();
+        Long userOwnerId = userOwnerEntity.getId();
+
+        User userBookerEntity = UserMapper.toUser(sourceUserBookerDto);
+        em.persist(userBookerEntity);
+        em.flush();
+        Long userBookerId = userBookerEntity.getId();
+
+        Item itemEntity = ItemMapper.toItem(sourceItemDto);
+        itemEntity.setOwnerId(userOwnerId);
+        em.persist(itemEntity);
+        em.flush();
+        Long itemId = itemEntity.getId();
+
+        List<BookingDto> sourceBookingDtos = List.of(
+                makeBookingDto(itemId, starDate.toString(), endDate.toString()),
+                makeBookingDto(itemId, starDate.plusDays(1).toString(), endDate.plusDays(1).toString()),
+                makeBookingDto(itemId, starDate.plusDays(2).toString(), endDate.plusDays(2).toString())
+        );
+
+        for (BookingDto bookingDto : sourceBookingDtos) {
+            Booking bookingEntity = BookingMapper.toBooking(bookingDto, itemEntity, userBookerEntity);
+            bookingEntity.setStatus(BookingStatus.REJECTED);
+            em.persist(bookingEntity);
+        }
+        em.flush();
+
+        BookingState bookingState = BookingState.REJECTED;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when
+        Collection<BookingDto> targetBookingDtos = bookingService.getAllBookingsByOwner(userOwnerId, bookingState, from, size);
+
+        // then
+        assertThat(targetBookingDtos, hasSize(sourceBookingDtos.size()));
+        for (BookingDto sourceBookingDto : sourceBookingDtos) {
+            assertThat(targetBookingDtos, hasItem(allOf(
+                    hasProperty("id", notNullValue()),
+                    hasProperty("start", equalTo(sourceBookingDto.getStart())),
+                    hasProperty("end", equalTo(sourceBookingDto.getEnd())),
+                    hasProperty("status", equalTo(BookingStatus.REJECTED)))
+            ));
+        }
+    }
+
+    @Test
+    void testGetAllBookingsByOwner_whenBookingState_ALL() {
+        // given
+        ItemDto sourceItemDto = makeItemDto("item1", "description", true);
+        UserDto sourceUserOwnerDto = makeUserDto("ivan@email", "Ivan");
+        UserDto sourceUserBookerDto = makeUserDto("petr@email", "Petr");
+        LocalDateTime starDate = LocalDateTime.now().plusDays(1);
+        LocalDateTime endDate = LocalDateTime.now().plusDays(5);
+
+        User userOwnerEntity = UserMapper.toUser(sourceUserOwnerDto);
+        em.persist(userOwnerEntity);
+        em.flush();
+        Long userOwnerId = userOwnerEntity.getId();
+
+        User userBookerEntity = UserMapper.toUser(sourceUserBookerDto);
+        em.persist(userBookerEntity);
+        em.flush();
+        Long userBookerId = userBookerEntity.getId();
+
+        Item itemEntity = ItemMapper.toItem(sourceItemDto);
+        itemEntity.setOwnerId(userOwnerId);
+        em.persist(itemEntity);
+        em.flush();
+        Long itemId = itemEntity.getId();
+
+        List<BookingDto> sourceBookingDtos = List.of(
+                makeBookingDto(itemId, starDate.toString(), endDate.toString()),
+                makeBookingDto(itemId, starDate.plusDays(1).toString(), endDate.plusDays(1).toString()),
+                makeBookingDto(itemId, starDate.plusDays(2).toString(), endDate.plusDays(2).toString())
+        );
+
+        for (BookingDto bookingDto : sourceBookingDtos) {
+            Booking bookingEntity = BookingMapper.toBooking(bookingDto, itemEntity, userBookerEntity);
+            bookingEntity.setStatus(BookingStatus.WAITING);
+            em.persist(bookingEntity);
+        }
+        em.flush();
+
+        BookingState bookingState = BookingState.ALL;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when
+        Collection<BookingDto> targetBookingDtos = bookingService.getAllBookingsByOwner(userOwnerId, bookingState, from, size);
+
+        // then
+        assertThat(targetBookingDtos, hasSize(sourceBookingDtos.size()));
+        for (BookingDto sourceBookingDto : sourceBookingDtos) {
+            assertThat(targetBookingDtos, hasItem(allOf(
+                    hasProperty("id", notNullValue()),
+                    hasProperty("start", equalTo(sourceBookingDto.getStart())),
+                    hasProperty("end", equalTo(sourceBookingDto.getEnd())),
+                    hasProperty("status", equalTo(BookingStatus.WAITING)))
+            ));
+        }
+    }
+
+    @Test
+    void testGetAllBookingsByOwner_whenBookingState_Current() {
+        // given
+        ItemDto sourceItemDto = makeItemDto("item1", "description", true);
+        UserDto sourceUserOwnerDto = makeUserDto("ivan@email", "Ivan");
+        UserDto sourceUserBookerDto = makeUserDto("petr@email", "Petr");
+        LocalDateTime starDate = LocalDateTime.now().plusDays(1);
+        LocalDateTime endDate = LocalDateTime.now().plusDays(5);
+
+        User userOwnerEntity = UserMapper.toUser(sourceUserOwnerDto);
+        em.persist(userOwnerEntity);
+        em.flush();
+        Long userOwnerId = userOwnerEntity.getId();
+
+        User userBookerEntity = UserMapper.toUser(sourceUserBookerDto);
+        em.persist(userBookerEntity);
+        em.flush();
+        Long userBookerId = userBookerEntity.getId();
+
+        Item itemEntity = ItemMapper.toItem(sourceItemDto);
+        itemEntity.setOwnerId(userOwnerId);
+        em.persist(itemEntity);
+        em.flush();
+        Long itemId = itemEntity.getId();
+
+        List<BookingDto> sourceBookingDtos = List.of(
+                makeBookingDto(itemId, starDate.plusDays(-3).toString(), endDate.plusDays(1).toString()),
+                makeBookingDto(itemId, starDate.plusDays(-1).toString(), endDate.plusDays(1).toString()),
+                makeBookingDto(itemId, starDate.plusDays(-2).toString(), endDate.plusDays(2).toString())
+        );
+
+        for (BookingDto bookingDto : sourceBookingDtos) {
+            Booking bookingEntity = BookingMapper.toBooking(bookingDto, itemEntity, userBookerEntity);
+            bookingEntity.setStatus(BookingStatus.WAITING);
+            em.persist(bookingEntity);
+        }
+        em.flush();
+
+        BookingState bookingState = BookingState.CURRENT;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when
+        Collection<BookingDto> targetBookingDtos = bookingService.getAllBookingsByOwner(userOwnerId, bookingState, from, size);
+
+        // then
+        assertThat(targetBookingDtos, hasSize(sourceBookingDtos.size()));
+        for (BookingDto sourceBookingDto : sourceBookingDtos) {
+            assertThat(targetBookingDtos, hasItem(allOf(
+                    hasProperty("id", notNullValue()),
+                    hasProperty("start", equalTo(sourceBookingDto.getStart())),
+                    hasProperty("end", equalTo(sourceBookingDto.getEnd())),
+                    hasProperty("status", equalTo(BookingStatus.WAITING)))
+            ));
+        }
+    }
+
+
+    @Test
+    void testGetAllBookingsByOwner_whenBookingState_FUTURE() {
+        // given
+        ItemDto sourceItemDto = makeItemDto("item1", "description", true);
+        UserDto sourceUserOwnerDto = makeUserDto("ivan@email", "Ivan");
+        UserDto sourceUserBookerDto = makeUserDto("petr@email", "Petr");
+        LocalDateTime starDate = LocalDateTime.now().plusDays(1);
+        LocalDateTime endDate = LocalDateTime.now().plusDays(5);
+
+        User userOwnerEntity = UserMapper.toUser(sourceUserOwnerDto);
+        em.persist(userOwnerEntity);
+        em.flush();
+        Long userOwnerId = userOwnerEntity.getId();
+
+        User userBookerEntity = UserMapper.toUser(sourceUserBookerDto);
+        em.persist(userBookerEntity);
+        em.flush();
+        Long userBookerId = userBookerEntity.getId();
+
+        Item itemEntity = ItemMapper.toItem(sourceItemDto);
+        itemEntity.setOwnerId(userOwnerId);
+        em.persist(itemEntity);
+        em.flush();
+        Long itemId = itemEntity.getId();
+
+        List<BookingDto> sourceBookingDtos = List.of(
+                makeBookingDto(itemId, starDate.plusDays(1).toString(), endDate.plusDays(2).toString()),
+                makeBookingDto(itemId, starDate.plusDays(2).toString(), endDate.plusDays(3).toString()),
+                makeBookingDto(itemId, starDate.plusDays(3).toString(), endDate.plusDays(4).toString())
+        );
+
+        for (BookingDto bookingDto : sourceBookingDtos) {
+            Booking bookingEntity = BookingMapper.toBooking(bookingDto, itemEntity, userBookerEntity);
+            bookingEntity.setStatus(BookingStatus.WAITING);
+            em.persist(bookingEntity);
+        }
+        em.flush();
+
+        BookingState bookingState = BookingState.FUTURE;
+        Integer from = 0;
+        Integer size = 10;
+
+        // when
+        Collection<BookingDto> targetBookingDtos = bookingService.getAllBookingsByOwner(userOwnerId, bookingState, from, size);
+
+        // then
+        assertThat(targetBookingDtos, hasSize(sourceBookingDtos.size()));
+        for (BookingDto sourceBookingDto : sourceBookingDtos) {
+            assertThat(targetBookingDtos, hasItem(allOf(
+                    hasProperty("id", notNullValue()),
+                    hasProperty("start", equalTo(sourceBookingDto.getStart())),
+                    hasProperty("end", equalTo(sourceBookingDto.getEnd())),
+                    hasProperty("status", equalTo(BookingStatus.WAITING)))
+            ));
+        }
+    }
+
 
     @Test
     void testGetAllBookingsByOwner_whenNoBookings() {

@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -85,6 +86,21 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(userService, never()).createUser(any());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testCreate_whenUserAlreadyExists() {
+        UserDto userToCreate = UserDto.builder()
+                .email("test@test.test")
+                .name("name")
+                .build();
+        when(userService.createUser(userToCreate)).thenThrow(new EmailAlreadyExistsException("error"));
+
+        mockMvc.perform(post("/users")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(userToCreate)))
+                .andExpect(status().isConflict());
     }
 
     @SneakyThrows

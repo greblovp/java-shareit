@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import java.util.List;
@@ -115,6 +116,19 @@ class ItemRequestControllerTest {
         // Then
         verify(itemRequestService).getItemRequestById(userId, requestId);
         assertEquals(objectMapper.writeValueAsString(itemRequestDto), response);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testFindByIdNotFound() {
+        Long userId = 1L;
+        Long requestId = 1L;
+
+        when(itemRequestService.getItemRequestById(userId, requestId)).thenThrow(new ItemRequestNotFoundException("error"));
+
+        mockMvc.perform(get("/requests/{requestId}", requestId)
+                        .header("X-Sharer-User-Id", userId))
+                .andExpect(status().isNotFound());
     }
 
     @Test
