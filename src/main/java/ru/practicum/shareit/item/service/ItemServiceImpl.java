@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
@@ -79,6 +78,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(itemRepository.save(itemToUpdate));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<ItemExtendedDto> getItems(Long userId, Integer from, Integer size) {
 
@@ -90,6 +90,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemExtendedDto getItemById(Long userId, Long itemId) {
         Item itemToGet = checkItemId(itemId);
@@ -102,6 +103,7 @@ public class ItemServiceImpl implements ItemService {
         return getComments(itemExtendedDto);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<ItemDto> searchItem(String text, Integer from, Integer size) {
         if (text.isBlank()) {

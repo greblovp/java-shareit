@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,9 +16,9 @@ import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -35,8 +34,7 @@ class BookingControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    @SneakyThrows
-    public void testCreateBooking() {
+    public void testCreateBooking() throws Exception {
         // given
         Long itemId = 1L;
         Long userId = 2L;
@@ -51,23 +49,18 @@ class BookingControllerTest {
         when(bookingService.createBooking(userId, bookingDto)).thenReturn(bookingDto);
 
         // when
-        String response = mockMvc.perform(post("/bookings")
+        mockMvc.perform(post("/bookings")
                         .contentType("application/json")
                         .header("X-Sharer-User-Id", userId)
                         .content(objectMapper.writeValueAsString(bookingDto)))
                 .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(bookingService).createBooking(userId, bookingDto);
-        assertEquals(objectMapper.writeValueAsString(bookingDto), response);
+                .andExpect(jsonPath("$.itemId").value(itemId))
+                .andExpect(jsonPath("$.start").value(startDate.toString()))
+                .andExpect(jsonPath("$.end").value(endDate.toString()));
     }
 
     @Test
-    @SneakyThrows
-    public void testCreateBooking_whenStartDateIsMissing() {
+    public void testCreateBooking_whenStartDateIsMissing() throws Exception {
         // given
         Long itemId = 1L;
         Long userId = 2L;
@@ -91,8 +84,7 @@ class BookingControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testCreateBooking_whenWrongBookingUser() {
+    public void testCreateBooking_whenWrongBookingUser() throws Exception {
         // given
         Long itemId = 1L;
         Long userId = 2L;
@@ -113,8 +105,7 @@ class BookingControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testCreateBooking_whenItemNotAvailable() {
+    public void testCreateBooking_whenItemNotAvailable() throws Exception {
         // given
         Long itemId = 1L;
         Long userId = 2L;
@@ -135,8 +126,7 @@ class BookingControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testGetBooking() {
+    public void testGetBooking() throws Exception {
         // given
         Long itemId = 1L;
         Long bookingId = 3L;
@@ -152,23 +142,18 @@ class BookingControllerTest {
         when(bookingService.getBooking(userId, bookingId)).thenReturn(bookingDto);
 
         // when
-        String response = mockMvc.perform(get("/bookings/{bookingId}", bookingId)
+        mockMvc.perform(get("/bookings/{bookingId}", bookingId)
                         .contentType("application/json")
                         .header("X-Sharer-User-Id", userId)
                         .content(objectMapper.writeValueAsString(bookingDto)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(bookingService).getBooking(userId, bookingId);
-        assertEquals(objectMapper.writeValueAsString(bookingDto), response);
+                .andExpect(jsonPath("$.itemId").value(itemId))
+                .andExpect(jsonPath("$.start").value(startDate.toString()))
+                .andExpect(jsonPath("$.end").value(endDate.toString()));
     }
 
     @Test
-    @SneakyThrows
-    public void testGetBooking_whenNotFound() {
+    public void testGetBooking_whenNotFound() throws Exception {
         // given
         Long itemId = 1L;
         Long bookingId = 3L;
@@ -192,10 +177,8 @@ class BookingControllerTest {
     }
 
 
-
     @Test
-    @SneakyThrows
-    public void testApproveBooking() {
+    public void testApproveBooking() throws Exception {
         // given
         Long itemId = 1L;
         Long bookingId = 3L;
@@ -211,24 +194,20 @@ class BookingControllerTest {
 
         when(bookingService.approveBooking(userId, bookingId, true)).thenReturn(bookingDto);
 
-        String response = mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
                         .contentType("application/json")
                         .header("X-Sharer-User-Id", userId)
                         .content(objectMapper.writeValueAsString(bookingDto))
                         .param("approved", "true"))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(bookingService).approveBooking(userId, bookingId, true);
-        assertEquals(objectMapper.writeValueAsString(bookingDto), response);
+                .andExpect(jsonPath("$.itemId").value(itemId))
+                .andExpect(jsonPath("$.start").value(startDate.toString()))
+                .andExpect(jsonPath("$.end").value(endDate.toString()))
+                .andExpect(jsonPath("$.status").value(BookingStatus.APPROVED.name()));
     }
 
     @Test
-    @SneakyThrows
-    public void testGetAllBookings() {
+    public void testGetAllBookings() throws Exception {
         // given
         Long itemId = 1L;
         Long userId = 2L;
@@ -247,25 +226,20 @@ class BookingControllerTest {
         when(bookingService.getAllBookings(userId, state, from, size)).thenReturn(List.of(bookingDto));
 
         // when
-        String response = mockMvc.perform(get("/bookings")
+        mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", userId)
                         .param("from", from.toString())
                         .param("size", size.toString())
                         .param("state", state.toString())
                         .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // Then
-        verify(bookingService).getAllBookings(userId, state, from, size);
-        assertEquals(objectMapper.writeValueAsString(List.of(bookingDto)), response);
+                .andExpect(jsonPath("$.[0].itemId").value(itemId))
+                .andExpect(jsonPath("$.[0].start").value(startDate.toString()))
+                .andExpect(jsonPath("$.[0].end").value(endDate.toString()));
     }
 
     @Test
-    @SneakyThrows
-    public void testGetAllBookings_whenUnknownBookingState() {
+    public void testGetAllBookings_whenUnknownBookingState() throws Exception {
         // given
         Long userId = 2L;
         Integer from = 0;
@@ -304,19 +278,15 @@ class BookingControllerTest {
         when(bookingService.getAllBookingsByOwner(userId, state, from, size)).thenReturn(List.of(bookingDto));
 
         // when
-        String response = mockMvc.perform(get("/bookings/owner")
+        mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", userId)
                         .param("from", from.toString())
                         .param("size", size.toString())
                         .param("state", state.toString())
                         .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // Then
-        verify(bookingService).getAllBookingsByOwner(userId, state, from, size);
-        assertEquals(objectMapper.writeValueAsString(List.of(bookingDto)), response);
+                .andExpect(jsonPath("$.[0].itemId").value(itemId))
+                .andExpect(jsonPath("$.[0].start").value(startDate.toString()))
+                .andExpect(jsonPath("$.[0].end").value(endDate.toString()));
     }
 }

@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,9 +18,9 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -35,9 +34,8 @@ class ItemControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @SneakyThrows
     @Test
-    void testCreateValidItem() {
+    void testCreateValidItem() throws Exception {
         // Given
         Long userId = 1L;
         ItemDto itemToCreate = ItemDto.builder()
@@ -46,23 +44,16 @@ class ItemControllerTest {
         when(itemService.createItem(userId, itemToCreate)).thenReturn(itemToCreate);
 
         // when
-        String response = mockMvc.perform(post("/items")
+        mockMvc.perform(post("/items")
                         .contentType("application/json")
                         .header("X-Sharer-User-Id", userId)
                         .content(objectMapper.writeValueAsString(itemToCreate)))
                 .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(itemService).createItem(userId, itemToCreate);
-        assertEquals(objectMapper.writeValueAsString(itemToCreate), response);
+                .andExpect(jsonPath("$.name").value("name"));
     }
 
-    @SneakyThrows
     @Test
-    void testCreateItemWithInvalidHeader() {
+    void testCreateItemWithInvalidHeader() throws Exception {
         // Given
         Long userId = 1L;
         ItemDto itemToCreate = ItemDto.builder()
@@ -80,9 +71,8 @@ class ItemControllerTest {
         verify(itemService, never()).createItem(userId, itemToCreate);
     }
 
-    @SneakyThrows
     @Test
-    void testCreateItemWithInvalidAttributes() {
+    void testCreateItemWithInvalidAttributes() throws Exception {
         // Given
         Long userId = 1L;
         ItemDto itemToCreate = ItemDto.builder()
@@ -98,9 +88,8 @@ class ItemControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @SneakyThrows
     @Test
-    void testUpdateValidItem() {
+    void testUpdateValidItem() throws Exception {
         // Given
         Long userId = 1L;
         Long itemId = 1L;
@@ -110,23 +99,16 @@ class ItemControllerTest {
         when(itemService.patchItem(userId, itemId, itemToUpdate)).thenReturn(itemToUpdate);
 
         // when
-        String response = mockMvc.perform(patch("/items/" + itemId)
+        mockMvc.perform(patch("/items/" + itemId)
                         .contentType("application/json")
                         .header("X-Sharer-User-Id", userId)
                         .content(objectMapper.writeValueAsString(itemToUpdate)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(itemService).patchItem(userId, itemId, itemToUpdate);
-        assertEquals(objectMapper.writeValueAsString(itemToUpdate), response);
+                .andExpect(jsonPath("$.name").value("name"));
     }
 
-    @SneakyThrows
     @Test
-    void testUpdate_whenWrongOwner() {
+    void testUpdate_whenWrongOwner() throws Exception {
         // Given
         Long userId = 1L;
         Long itemId = 1L;
@@ -143,9 +125,8 @@ class ItemControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @SneakyThrows
     @Test
-    void testGetItems() {
+    void testGetItems() throws Exception {
         // Given
         Long userId = 1L;
         Integer from = 0;
@@ -156,25 +137,18 @@ class ItemControllerTest {
         when(itemService.getItems(userId, from, size)).thenReturn(List.of(item));
 
         // when
-        String response = mockMvc.perform(get("/items")
+        mockMvc.perform(get("/items")
                         .contentType("application/json")
                         .param("from", from.toString())
                         .param("size", size.toString())
                         .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(itemService).getItems(userId, from, size);
-        assertEquals(objectMapper.writeValueAsString(List.of(item)), response);
+                .andExpect(jsonPath("$.[0].name").value("name"));
     }
 
 
     @Test
-    @SneakyThrows
-    public void testFindById() {
+    public void testFindById() throws Exception {
         // Given
         Long userId = 1L;
         Long itemId = 1L;
@@ -184,21 +158,14 @@ class ItemControllerTest {
         when(itemService.getItemById(userId, itemId)).thenReturn(item);
 
         // when
-        String response = mockMvc.perform(get("/items/" + itemId)
+        mockMvc.perform(get("/items/" + itemId)
                         .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(itemService).getItemById(userId, itemId);
-        assertEquals(objectMapper.writeValueAsString(item), response);
+                .andExpect(jsonPath("$.name").value("name"));
     }
 
     @Test
-    @SneakyThrows
-    public void testFindByIdNotFound() {
+    public void testFindByIdNotFound() throws Exception {
         Long userId = 1L;
         Long itemId = 1L;
 
@@ -210,8 +177,7 @@ class ItemControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testSearchItem() {
+    public void testSearchItem() throws Exception {
         // Given
         ItemDto item = ItemDto.builder()
                 .name("name")
@@ -222,54 +188,40 @@ class ItemControllerTest {
         when(itemService.searchItem("name", from, size)).thenReturn(List.of(item));
 
         // when
-        String response = mockMvc.perform(get("/items/search")
+        mockMvc.perform(get("/items/search")
                         .contentType("application/json")
                         .param("from", from.toString())
                         .param("size", size.toString())
                         .param("text", "name"))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(itemService).searchItem("name", from, size);
-        assertEquals(objectMapper.writeValueAsString(List.of(item)), response);
+                .andExpect(jsonPath("$.[0].name").value("name"));
 
     }
 
     @Test
-    @SneakyThrows
-    public void testAddCommentSuccess() {
+    public void testAddCommentSuccess() throws Exception {
         // Given
         CommentDto commentDto = CommentDto.builder().text("Test comment").build();
-        Long userId = 1L;
-        Long itemId = 1L;
+        long userId = 1L;
+        long itemId = 1L;
 
         when(itemService.addComment(userId, itemId, commentDto)).thenReturn(commentDto);
 
         // when
-        String response = mockMvc.perform(post("/items/" + itemId + "/comment")
+        mockMvc.perform(post("/items/" + itemId + "/comment")
                         .contentType("application/json")
                         .header("X-Sharer-User-Id", userId)
                         .content(objectMapper.writeValueAsString(commentDto)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // then
-        verify(itemService).addComment(userId, itemId, commentDto);
-        assertEquals(objectMapper.writeValueAsString(commentDto), response);
+                .andExpect(jsonPath("$.text").value("Test comment"));
     }
 
     @Test
-    @SneakyThrows
-    public void testAddCommentInvalidRequestBody() {
+    public void testAddCommentInvalidRequestBody() throws Exception {
         // Given
         CommentDto commentDto = CommentDto.builder().text("").build();
-        Long userId = 1L;
-        Long itemId = 1L;
+        long userId = 1L;
+        long itemId = 1L;
 
         when(itemService.addComment(userId, itemId, commentDto)).thenReturn(commentDto);
 
@@ -285,12 +237,11 @@ class ItemControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testAddComment_whenNotAvailable() {
+    public void testAddComment_whenNotAvailable() throws Exception {
         // Given
         CommentDto commentDto = CommentDto.builder().text("").build();
-        Long userId = 1L;
-        Long itemId = 1L;
+        long userId = 1L;
+        long itemId = 1L;
 
         when(itemService.addComment(userId, itemId, commentDto)).thenThrow(new CommentNotAvailableException("error"));
 

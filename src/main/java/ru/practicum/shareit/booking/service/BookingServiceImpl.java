@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
@@ -92,6 +91,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookingRepository.save(bookingToApprove));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public BookingDto getBooking(Long userId, Long bookingId) {
         Booking bookingToGet = checkBookingId(bookingId);
@@ -108,6 +108,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookingToGet);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<BookingDto> getAllBookings(Long userId, BookingState bookingState, Integer from, Integer size) {
         Pageable page = PageGetter.getPageRequest(from, size, Sort.by("endDate").descending());
@@ -141,6 +142,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookingList);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<BookingDto> getAllBookingsByOwner(Long userId, BookingState bookingState, Integer from, Integer size) {
         Pageable page = PageGetter.getPageRequest(from, size, Sort.by("endDate").descending());

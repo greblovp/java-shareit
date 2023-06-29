@@ -17,6 +17,7 @@ import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.transaction.Transactional;
@@ -76,6 +77,21 @@ class ItemRequestServiceImplTest {
         assertThat(persistedItemRequest, notNullValue());
         assertThat(persistedItemRequest.getDescription(), equalTo(sourceItemRequestDto.getDescription()));
         assertThat(persistedItemRequest.getRequestor(), equalTo(userEntity));
+
+        verify(userService).getUserById(userId);
+    }
+
+    @Test
+    public void testCreateItem_whenUserIdNotFound() {
+        // given
+        Long userId = 1L;
+        ItemRequestDto sourceItemRequestDto = ItemRequestDto.builder().description("description").build();
+        when(userService.getUserById(userId)).thenThrow(new UserNotFoundException("Пользователь с ID = " + userId + " не найден."));
+
+        //when & then
+        assertThatThrownBy(() -> itemRequestService.createItemRequest(userId, sourceItemRequestDto))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage("Пользователь с ID = " + userId + " не найден.");
 
         verify(userService).getUserById(userId);
     }

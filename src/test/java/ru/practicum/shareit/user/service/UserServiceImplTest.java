@@ -172,6 +172,7 @@ class UserServiceImplTest {
         // then
         assertThat(updatedUserDto.getName(), equalTo(userDtoToUpdate.getName()));
         assertThat(updatedUserDto.getEmail(), equalTo(userDtoToUpdate.getEmail()));
+        assertThat(updatedUserDto.getId(), equalTo(userId));
     }
 
     @Test
@@ -191,6 +192,7 @@ class UserServiceImplTest {
         // then
         assertThat(updatedUserDto.getName(), equalTo(userDtoToUpdate.getName()));
         assertThat(updatedUserDto.getEmail(), equalTo(sourceUserDto.getEmail()));
+        assertThat(updatedUserDto.getId(), equalTo(userId));
     }
 
     @Test
@@ -210,6 +212,7 @@ class UserServiceImplTest {
         // then
         assertThat(updatedUserDto.getName(), equalTo(sourceUserDto.getName()));
         assertThat(updatedUserDto.getEmail(), equalTo(userDtoToUpdate.getEmail()));
+        assertThat(updatedUserDto.getId(), equalTo(userId));
     }
 
     @Test

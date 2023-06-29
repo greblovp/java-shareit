@@ -21,7 +21,6 @@ import ru.practicum.shareit.util.PageGetter;
 import java.util.Collection;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserService userService;
@@ -41,6 +40,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return ItemRequestMapper.toItemRequestDto(createdItemRequest);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemRequestDto getItemRequestById(Long userId, Long requestId) {
         //Проверяем, что пользователь существует
@@ -57,6 +57,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequestDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<ItemRequestDto> getItemRequests(Long userId) {
         //Проверяем, что пользователь существует
@@ -73,6 +74,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequestDtos;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<ItemRequestDto> getAllItemRequests(Long userId, Integer from, Integer size) {
         //Проверяем, что пользователь существует
