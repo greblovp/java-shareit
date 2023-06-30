@@ -1,8 +1,12 @@
 package ru.practicum.shareit.user.service;
 
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.TestPropertySource;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -11,67 +15,97 @@ import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.exception.UserValidationException;
 
+import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
+@Transactional
+@TestPropertySource(properties = {"db.name=test"})
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@DataJpaTest
 class UserServiceImplTest {
 
-    private final UserRepository userRepository = Mockito.mock(UserRepository.class);
+    private final TestEntityManager em;
+    private final UserRepository userRepository;
+    private UserService userService;
 
-    private final UserService userService = new UserServiceImpl(userRepository);
-
-    private UserDto userDto = UserDto.builder()
-            .email("test1@test.test")
-            .name("name1")
-            .build();
-
-    private UserDto userDtoNullEmail = UserDto.builder()
-            .name("name1")
-            .build();
-
-    private User user1 = new User();
-    private User user2 = new User();
-
-    UserServiceImplTest() {
-        user1.setName("name1");
-        user1.setEmail("test1@test.test");
-
-        user2.setName("name2");
-        user2.setEmail("test2@test.test");
+    @BeforeEach
+    public void setUp() {
+        userService = new UserServiceImpl(userRepository);
     }
 
     @Test
-    public void testFindAll() {
-        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+    public void testGetUsers() {
+        // given
+        List<UserDto> sourceUserDtos = List.of(
+                makeUserDto("ivan@email", "Ivan"),
+                makeUserDto("petr@email", "Petr"),
+                makeUserDto("vasilii@email", "Vasilii")
+        );
 
-        Collection<UserDto> result = userService.getUsers();
+        for (UserDto userDto : sourceUserDtos) {
+            User entity = UserMapper.toUser(userDto);
+            em.persist(entity);
+        }
+        em.flush();
 
-        assertEquals(2, result.size());
-        assertEquals(List.of(UserMapper.toUserDto(user1), UserMapper.toUserDto(user2)), result);
-        verify(userRepository, times(1)).findAll();
+        // when
+        Collection<UserDto> targetUserDtos = userService.getUsers();
+
+        // then
+        assertThat(targetUserDtos, hasSize(sourceUserDtos.size()));
+        for (UserDto sourceUserDto : sourceUserDtos) {
+            assertThat(targetUserDtos, hasItem(allOf(
+                    hasProperty("id", notNullValue()),
+                    hasProperty("name", equalTo(sourceUserDto.getName())),
+                    hasProperty("email", equalTo(sourceUserDto.getEmail()))
+            )));
+        }
+    }
+
+    @Test
+    public void testGetUsers_whenCollectionIsEmpty() {
+        // given
+
+        // when
+        Collection<UserDto> targetUserDtos = userService.getUsers();
+
+        // then
+        assertThat(targetUserDtos, hasSize(0));
     }
 
     @Test
     public void testFindById() {
-        Long userId = 1L;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+        User entity = UserMapper.toUser(sourceUserDto);
+        em.persist(entity);
+        em.flush();
 
-        UserDto result = userService.getUserById(userId);
+        // when
+        UserDto targetUserDto = userService.getUserById(entity.getId());
 
-        assertEquals(userDto, result);
-        verify(userRepository, times(1)).findById(userId);
+        // then
+        assertThat(targetUserDto, allOf(
+                hasProperty("id", equalTo(entity.getId())),
+                hasProperty("name", equalTo(sourceUserDto.getName())),
+                hasProperty("email", equalTo(sourceUserDto.getEmail()))
+        ));
     }
 
     @Test
-    public void testFindByIdNotFound() {
+    public void testFindBy_whenIdNotFound() {
+        // given
         Long userId = 3L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
+        // when & then
         assertThatThrownBy(() -> userService.getUserById(userId))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("Пользователь с ID = " + userId + " не найден.");
@@ -79,56 +113,154 @@ class UserServiceImplTest {
 
 
     @Test
+    void testCreateUser() {
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+
+        // when
+        userService.createUser(sourceUserDto);
+
+        // then
+        TypedQuery<User> query = em.getEntityManager().createQuery("Select u from User u where u.email = :email",
+                User.class);
+        User targetUser = query.setParameter("email", sourceUserDto.getEmail())
+                .getSingleResult();
+
+        assertThat(targetUser.getId(), notNullValue());
+        assertThat(targetUser.getName(), equalTo(sourceUserDto.getName()));
+        assertThat(targetUser.getEmail(), equalTo(sourceUserDto.getEmail()));
+    }
+
+    @Test
     void testCreateUser_whenEmailIsNull() {
-        assertThatThrownBy(() -> userService.createUser(userDtoNullEmail))
+        // given
+        UserDto sourceUserDto = makeUserDto(null, "Ivan");
+
+        // when & then
+        assertThatThrownBy(() -> userService.createUser(sourceUserDto))
                 .isInstanceOf(UserValidationException.class)
                 .hasMessage("Email не может быть пустым.");
     }
 
     @Test
     void testCreateUser_whenEmailAlreadyExists() {
-        when(userRepository.save(any(User.class))).thenThrow(DataIntegrityViolationException.class);
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+        User entity = UserMapper.toUser(sourceUserDto);
+        em.persist(entity);
+        em.flush();
 
-        assertThatThrownBy(() -> userService.createUser(userDto))
+        // when & then
+        assertThatThrownBy(() -> userService.createUser(sourceUserDto))
                 .isInstanceOf(EmailAlreadyExistsException.class);
     }
 
     @Test
     public void testUpdateUser() {
-        Long userId = 3L;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
-        when(userRepository.save(user1)).thenReturn(user1);
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+        User entity = UserMapper.toUser(sourceUserDto);
+        em.persist(entity);
+        em.flush();
+        Long userId = entity.getId();
 
-        UserDto result = userService.patchUser(userId, userDto);
+        UserDto userDtoToUpdate = makeUserDto("petr@email", "Petr");
 
-        assertEquals(userDto, result);
-        verify(userRepository, times(1)).save(user1);
+        // when
+        UserDto updatedUserDto = userService.patchUser(userId, userDtoToUpdate);
+
+        // then
+        assertThat(updatedUserDto.getName(), equalTo(userDtoToUpdate.getName()));
+        assertThat(updatedUserDto.getEmail(), equalTo(userDtoToUpdate.getEmail()));
+        assertThat(updatedUserDto.getId(), equalTo(userId));
+    }
+
+    @Test
+    public void testUpdateUser_whenEmailIsNull() {
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+        User entity = UserMapper.toUser(sourceUserDto);
+        em.persist(entity);
+        em.flush();
+        Long userId = entity.getId();
+
+        UserDto userDtoToUpdate = makeUserDto(null, "Petr");
+
+        // when
+        UserDto updatedUserDto = userService.patchUser(userId, userDtoToUpdate);
+
+        // then
+        assertThat(updatedUserDto.getName(), equalTo(userDtoToUpdate.getName()));
+        assertThat(updatedUserDto.getEmail(), equalTo(sourceUserDto.getEmail()));
+        assertThat(updatedUserDto.getId(), equalTo(userId));
+    }
+
+    @Test
+    public void testUpdateUser_whenNameIsNull() {
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+        User entity = UserMapper.toUser(sourceUserDto);
+        em.persist(entity);
+        em.flush();
+        Long userId = entity.getId();
+
+        UserDto userDtoToUpdate = makeUserDto("petr@email", null);
+
+        // when
+        UserDto updatedUserDto = userService.patchUser(userId, userDtoToUpdate);
+
+        // then
+        assertThat(updatedUserDto.getName(), equalTo(sourceUserDto.getName()));
+        assertThat(updatedUserDto.getEmail(), equalTo(userDtoToUpdate.getEmail()));
+        assertThat(updatedUserDto.getId(), equalTo(userId));
     }
 
     @Test
     void testUpdateUser_whenUserNotFound() {
+        // given
         Long userId = 3L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> userService.patchUser(userId, userDto))
+        UserDto userDtoToUpdate = makeUserDto("petr@email", "Petr");
+
+        // when & then
+        assertThatThrownBy(() -> userService.patchUser(userId, userDtoToUpdate))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("Пользователь с ID = " + userId + " не найден.");
     }
 
+
     @Test
-    void removeUser_removesUser_whenUserExists() {
-        Long userId = 3L;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
+    void removeUser_whenUserExists() {
+        // given
+        UserDto sourceUserDto = makeUserDto("ivan@email", "Ivan");
+        User entity = UserMapper.toUser(sourceUserDto);
+        em.persist(entity);
+        em.flush();
+        Long userId = entity.getId();
+
+        // when
         userService.removeUser(userId);
-        verify(userRepository).deleteById(userId);
+
+        // then
+        User targetUser = em.find(User.class, userId);
+        assertThat(targetUser, nullValue());
     }
 
     @Test
     void removeUser_whenUserNotFound() {
+        //given
         Long userId = 3L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
         assertThatThrownBy(() -> userService.removeUser(userId))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("Пользователь с ID = " + userId + " не найден.");
+    }
+
+    private UserDto makeUserDto(String email, String name) {
+        return UserDto.builder()
+                .email(email)
+                .name(name)
+                .build();
     }
 
 }

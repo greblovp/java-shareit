@@ -23,8 +23,11 @@ public class Item {
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable;
 
-    @Column(name = "owner_id")
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
+
+    @Column(name = "request_id")
+    private Long requestId;
 
     @Override
     public boolean equals(Object o) {

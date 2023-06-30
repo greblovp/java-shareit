@@ -17,13 +17,13 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     @NonNull
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<UserDto> getUsers() {
         return userRepository.findAll().stream()
@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(Long userId) {
         return UserMapper.toUserDto(checkUserId(userId));

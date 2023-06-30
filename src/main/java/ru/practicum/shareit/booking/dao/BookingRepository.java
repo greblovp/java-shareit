@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.dao;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.Booking;
@@ -10,35 +12,33 @@ import java.util.Collection;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    Collection<Booking> findByBookerIdOrderByEndDateDesc(Long bookerId);
+    Page<Booking> findByBookerId(Long bookerId, Pageable page);
 
-    Collection<Booking> findByBookerIdAndEndDateLessThanEqualOrderByEndDateDesc(Long bookerId, LocalDateTime endDate);
+    Page<Booking> findByBookerIdAndEndDateLessThanEqual(Long bookerId, LocalDateTime endDate, Pageable page);
 
-    Collection<Booking> findByBookerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(Long bookerId, LocalDateTime startDate);
+    Page<Booking> findByBookerIdAndStartDateGreaterThanEqual(Long bookerId, LocalDateTime startDate, Pageable page);
 
-    Collection<Booking> findByBookerIdAndStatusOrderByEndDateDesc(Long bookerId, BookingStatus status);
+    Page<Booking> findByBookerIdAndStatus(Long bookerId, BookingStatus status, Pageable page);
 
     @Query("select b from Booking b " +
             "where b.booker.id = ?1 " +
             "and ?2 >= b.startDate " +
-            "and ?2 <= b.endDate " +
-            "order by b.endDate desc")
-    Collection<Booking> findByBookerIdAndCurrent(Long bookerId, LocalDateTime dateTime);
+            "and ?2 <= b.endDate ")
+    Page<Booking> findByBookerIdAndCurrent(Long bookerId, LocalDateTime dateTime, Pageable page);
 
-    Collection<Booking> findByItem_OwnerIdOrderByEndDateDesc(Long ownerId);
+    Page<Booking> findByItem_OwnerId(Long ownerId, Pageable page);
 
-    Collection<Booking> findByItem_OwnerIdAndEndDateLessThanEqualOrderByEndDateDesc(Long ownerId, LocalDateTime endDate);
+    Page<Booking> findByItem_OwnerIdAndEndDateLessThanEqual(Long ownerId, LocalDateTime endDate, Pageable page);
 
-    Collection<Booking> findByItem_OwnerIdAndStartDateGreaterThanEqualOrderByEndDateDesc(Long ownerId, LocalDateTime startDate);
+    Page<Booking> findByItem_OwnerIdAndStartDateGreaterThanEqual(Long ownerId, LocalDateTime startDate, Pageable page);
 
-    Collection<Booking> findByItem_OwnerIdAndStatusOrderByEndDateDesc(Long ownerId, BookingStatus status);
+    Page<Booking> findByItem_OwnerIdAndStatus(Long ownerId, BookingStatus status, Pageable page);
 
     @Query("select b from Booking b " +
             "where b.item.ownerId = ?1 " +
             "and ?2 >= b.startDate " +
-            "and ?2 <= b.endDate " +
-            "order by b.endDate desc")
-    Collection<Booking> findByItem_OwnerIdAndCurrent(Long ownerId, LocalDateTime dateTime);
+            "and ?2 <= b.endDate")
+    Page<Booking> findByItem_OwnerIdAndCurrent(Long ownerId, LocalDateTime dateTime, Pageable page);
 
     Booking findFirst1ByItemIdAndStartDateGreaterThanAndStatusOrderByStartDate(Long itemId, LocalDateTime dateTime, BookingStatus status);
 

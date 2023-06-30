@@ -8,7 +8,7 @@ import java.util.Collection;
 
 @Data
 @Builder
-public class ItemOwnerDto {
+public class ItemExtendedDto {
     private Long id;
     private String name;
     private String description;

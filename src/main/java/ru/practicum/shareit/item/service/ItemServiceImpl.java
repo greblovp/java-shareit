@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -19,6 +21,7 @@ import ru.practicum.shareit.item.exception.WrongItemOwnerException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.util.PageGetter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,7 +30,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
@@ -76,32 +78,41 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(itemRepository.save(itemToUpdate));
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Collection<ItemOwnerDto> getItems(Long userId) {
-        return itemRepository.findByOwnerIdOrderById(userId).stream()
+    public Collection<ItemExtendedDto> getItems(Long userId, Integer from, Integer size) {
+
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.by("id").ascending());
+
+        return itemRepository.findByOwnerId(userId, page).getContent().stream()
                 .map(this::getItemLastAndNextBooking)
                 .map(this::getComments)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public ItemOwnerDto getItemById(Long userId, Long itemId) {
+    public ItemExtendedDto getItemById(Long userId, Long itemId) {
         Item itemToGet = checkItemId(itemId);
-        ItemOwnerDto itemOwnerDto;
+        ItemExtendedDto itemExtendedDto;
         if (userId.equals(itemToGet.getOwnerId())) {
-            itemOwnerDto = getItemLastAndNextBooking(itemToGet);
+            itemExtendedDto = getItemLastAndNextBooking(itemToGet);
         } else {
-            itemOwnerDto = ItemMapper.toItemOwnerDto(itemToGet);
+            itemExtendedDto = ItemMapper.toItemOwnerDto(itemToGet);
         }
-        return getComments(itemOwnerDto);
+        return getComments(itemExtendedDto);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Collection<ItemDto> searchItem(String text) {
+    public Collection<ItemDto> searchItem(String text, Integer from, Integer size) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemRepository.search(text).stream()
+
+        Pageable page = PageGetter.getPageRequest(from, size, Sort.unsorted());
+
+        return itemRepository.search(text, page).getContent().stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
@@ -128,21 +139,21 @@ public class ItemServiceImpl implements ItemService {
                 -> new ItemNotFoundException("Вещь с ID = " + id + " не найдена."));
     }
 
-    private ItemOwnerDto getItemLastAndNextBooking(Item item) {
-        ItemOwnerDto itemOwnerDto = ItemMapper.toItemOwnerDto(item);
+    private ItemExtendedDto getItemLastAndNextBooking(Item item) {
+        ItemExtendedDto itemExtendedDto = ItemMapper.toItemOwnerDto(item);
 
         Optional<Booking> lastBookingOptional = Optional.ofNullable(
                 bookingRepository.findFirst1ByItemIdAndStartDateLessThanEqualAndStatusOrderByStartDateDesc(item.getId(), LocalDateTime.now(), BookingStatus.APPROVED));
         Optional<Booking> nextBookingOptional = Optional.ofNullable(
                 bookingRepository.findFirst1ByItemIdAndStartDateGreaterThanAndStatusOrderByStartDate(item.getId(), LocalDateTime.now(), BookingStatus.APPROVED));
 
-        lastBookingOptional.ifPresent(booking -> itemOwnerDto.setLastBooking(BookingMapper.toBookingForItemDto(booking)));
-        nextBookingOptional.ifPresent(booking -> itemOwnerDto.setNextBooking(BookingMapper.toBookingForItemDto(booking)));
+        lastBookingOptional.ifPresent(booking -> itemExtendedDto.setLastBooking(BookingMapper.toBookingForItemDto(booking)));
+        nextBookingOptional.ifPresent(booking -> itemExtendedDto.setNextBooking(BookingMapper.toBookingForItemDto(booking)));
 
-        return itemOwnerDto;
+        return itemExtendedDto;
     }
 
-    private ItemOwnerDto getComments(ItemOwnerDto dto) {
+    private ItemExtendedDto getComments(ItemExtendedDto dto) {
         commentRepository.findAllByItemIdOrderById(dto.getId())
                 .forEach(comment -> dto.getComments().add(CommentMapper.toCommentDto(comment)));
         return dto;

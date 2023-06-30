@@ -7,7 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemOwnerDto;
+import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.exception.CommentValidationException;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -36,21 +36,25 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemOwnerDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public Collection<ItemExtendedDto> getItems(@RequestHeader("X-Sharer-User-Id") long userId,
+                                                @RequestParam(defaultValue = "0") Integer from,
+                                                @RequestParam(defaultValue = "10") Integer size) {
         log.info("Вывести все вещи пользователя ID = {}", userId);
-        return itemService.getItems(userId);
+        return itemService.getItems(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
-    public ItemOwnerDto getItemById(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId) {
+    public ItemExtendedDto getItemById(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId) {
         log.info("Вывести вещь ID = {}", itemId);
         return itemService.getItemById(userId, itemId);
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchItem(@RequestParam String text) {
+    public Collection<ItemDto> searchItem(@RequestParam String text,
+                                          @RequestParam(defaultValue = "0") Integer from,
+                                          @RequestParam(defaultValue = "10") Integer size) {
         log.info("Вывести вещи, содержащие в названии или описании текст {}", text);
-        return itemService.searchItem(text);
+        return itemService.searchItem(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

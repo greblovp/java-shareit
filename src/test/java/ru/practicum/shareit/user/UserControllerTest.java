@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,12 +9,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,50 +31,39 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @SneakyThrows
     @Test
-    void testGetUsers() {
+    void testGetUsers() throws Exception {
         UserDto userToCreate = UserDto.builder()
                 .email("test@test.test")
                 .name("name")
                 .build();
         when(userService.getUsers()).thenReturn(List.of(userToCreate));
 
-        String response = mockMvc.perform(get("/users")
+        mockMvc.perform(get("/users")
                         .contentType("application/json"))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(userService).getUsers();
-        assertEquals(objectMapper.writeValueAsString(List.of(userToCreate)), response);
+                .andExpect(jsonPath("$.[0].name").value("name"))
+                .andExpect(jsonPath("$.[0].email").value("test@test.test"));
     }
 
-    @SneakyThrows
     @Test
-    void testCreateValidUser() {
+    void testCreateValidUser() throws Exception {
         UserDto userToCreate = UserDto.builder()
                 .email("test@test.test")
                 .name("name")
                 .build();
         when(userService.createUser(userToCreate)).thenReturn(userToCreate);
 
-        String response = mockMvc.perform(post("/users")
+        mockMvc.perform(post("/users")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(userToCreate)))
                 .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(userService).createUser(userToCreate);
-        assertEquals(objectMapper.writeValueAsString(userToCreate), response);
+                .andExpect(jsonPath("$.name").value("name"))
+                .andExpect(jsonPath("$.email").value("test@test.test"));
     }
 
-    @SneakyThrows
     @Test
-    void testCreateInValidUser() {
+    void testCreateInValidUser() throws Exception {
         UserDto userToCreate = UserDto.builder().email("badEmail").build();
         when(userService.createUser(userToCreate)).thenReturn(userToCreate);
 
@@ -87,9 +75,22 @@ class UserControllerTest {
         verify(userService, never()).createUser(any());
     }
 
-    @SneakyThrows
     @Test
-    void testUpdateValidUser() {
+    public void testCreate_whenUserAlreadyExists() throws Exception {
+        UserDto userToCreate = UserDto.builder()
+                .email("test@test.test")
+                .name("name")
+                .build();
+        when(userService.createUser(userToCreate)).thenThrow(new EmailAlreadyExistsException("error"));
+
+        mockMvc.perform(post("/users")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(userToCreate)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testUpdateValidUser() throws Exception {
         Long userId = 1L;
 
         UserDto userToUpdate = UserDto.builder()
@@ -98,21 +99,16 @@ class UserControllerTest {
                 .build();
         when(userService.patchUser(userId, userToUpdate)).thenReturn(userToUpdate);
 
-        String response = mockMvc.perform(patch("/users/" + userId)
+        mockMvc.perform(patch("/users/" + userId)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(userToUpdate)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(userService).patchUser(userId, userToUpdate);
-        assertEquals(objectMapper.writeValueAsString(userToUpdate), response);
+                .andExpect(jsonPath("$.name").value("name"))
+                .andExpect(jsonPath("$.email").value("test@test.test"));
     }
 
-    @SneakyThrows
     @Test
-    void testUpdateInValidUser() {
+    void testUpdateInValidUser() throws Exception {
         Long userId = 1L;
         UserDto userToUpdate = UserDto.builder().email("badEmail").build();
         when(userService.patchUser(userId, userToUpdate)).thenReturn(userToUpdate);
@@ -126,8 +122,7 @@ class UserControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testFindById() {
+    public void testFindById() throws Exception {
         Long userId = 1L;
         UserDto user = UserDto.builder().build();
         user.setId(userId);
@@ -140,8 +135,7 @@ class UserControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testFindByIdNotFound() {
+    public void testFindByIdNotFound() throws Exception {
         Long userId = 1L;
 
         when(userService.getUserById(userId)).thenThrow(new UserNotFoundException(String.format("Пользователь с ID = %d не найден.", userId)));
@@ -151,8 +145,7 @@ class UserControllerTest {
     }
 
     @Test
-    @SneakyThrows
-    public void testRemoveUser() {
+    public void testRemoveUser() throws Exception {
         Long userId = 1L;
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/users/" + userId))
