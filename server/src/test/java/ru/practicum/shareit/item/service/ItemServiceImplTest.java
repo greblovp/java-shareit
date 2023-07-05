@@ -21,7 +21,6 @@ import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.exception.CommentNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.ItemValidationException;
 import ru.practicum.shareit.item.exception.WrongItemOwnerException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -93,18 +92,6 @@ class ItemServiceImplTest {
         verify(userService).getUserById(userId);
     }
 
-
-    @Test
-    public void testCreateItem_whenMissingFields() {
-        // given
-        Long userId = 1L;
-        ItemDto sourceItemDto = makeItemDto(null, null, true);
-
-        // when & then
-        assertThatThrownBy(() -> itemService.createItem(userId, sourceItemDto))
-                .isInstanceOf(ItemValidationException.class)
-                .hasMessage("Заполните все поля.");
-    }
 
     @Test
     public void testCreateItem_whenUserIdNotFound() {

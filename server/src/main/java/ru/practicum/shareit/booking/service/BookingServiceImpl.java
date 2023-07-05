@@ -12,8 +12,6 @@ import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
-import ru.practicum.shareit.booking.exception.BookingValidationException;
-import ru.practicum.shareit.booking.exception.BookingWrongStatusException;
 import ru.practicum.shareit.booking.exception.WrongBookingUserException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
@@ -56,8 +54,6 @@ public class BookingServiceImpl implements BookingService {
 
         Booking bookingToCreate = BookingMapper.toBooking(bookingDto, item, booker);
 
-        checkBookingDates(bookingToCreate);
-
         bookingToCreate.setStatus(BookingStatus.WAITING);
 
         Booking savedBooking = bookingRepository.save(bookingToCreate);
@@ -79,7 +75,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (bookingToApprove.getStatus() != BookingStatus.WAITING) {
-            throw new BookingWrongStatusException("Для согласования бронирования оно должно быть в статусе WAITING");
+            throw new IllegalArgumentException("Для согласования бронирования оно должно быть в статусе WAITING");
         }
 
         if (approved) {
@@ -179,23 +175,5 @@ public class BookingServiceImpl implements BookingService {
     private Booking checkBookingId(Long id) {
         return bookingRepository.findById(id).orElseThrow(()
                 -> new BookingNotFoundException("Бронирование с ID = " + id + " не найдено."));
-    }
-
-    private void checkBookingDates(Booking booking) {
-        //Проверяема конечная дата бронирования
-        LocalDateTime start = booking.getStartDate();
-        LocalDateTime end = booking.getEndDate();
-        if (end.isBefore(start)) {
-            throw new BookingValidationException("Дата оконачания бронирования не может быть раньше даты начала");
-        }
-        if (end.isBefore(LocalDateTime.now())) {
-            throw new BookingValidationException("Дата оконачания бронирования не может быть раньше текущей даты");
-        }
-        if (start.isBefore(LocalDateTime.now())) {
-            throw new BookingValidationException("Дата начала бронирования не может быть раньше текущей даты");
-        }
-        if (end.isEqual(start)) {
-            throw new BookingValidationException("Дата начала и оконачания бронирования не могут совпадать");
-        }
     }
 }

@@ -3,10 +3,8 @@ package ru.practicum.shareit.request;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.exception.ItemRequestValidationException;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import java.util.Collection;
@@ -21,10 +19,8 @@ public class ItemRequestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemRequestDto createItemRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                            @RequestBody ItemRequestDto itemRequestDto,
-                                            BindingResult bindingResult) {
+                                            @RequestBody ItemRequestDto itemRequestDto) {
         log.info("Создать запрос на вещь \"{}\" для пользователя ID = {}", itemRequestDto.getDescription(), userId);
-        generateCustomValidateException(itemRequestDto, bindingResult);
         return itemRequestService.createItemRequest(userId, itemRequestDto);
     }
 
@@ -47,14 +43,5 @@ public class ItemRequestController {
                                                          @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получить все запросы на вещи для пользователя ID = {} с пагинацией", userId);
         return itemRequestService.getAllItemRequests(userId, from, size);
-    }
-
-    private void generateCustomValidateException(ItemRequestDto itemRequestDto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            log.warn("Ошибка в заполнении поля {} - {}. Запрос - {}", bindingResult.getFieldError().getField(),
-                    bindingResult.getFieldError().getDefaultMessage(), itemRequestDto);
-            throw new ItemRequestValidationException("Ошибка в заполнении поля " + bindingResult.getFieldError().getField() + " - " +
-                    bindingResult.getFieldError().getDefaultMessage());
-        }
     }
 }

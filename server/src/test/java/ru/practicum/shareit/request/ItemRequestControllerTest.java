@@ -47,23 +47,23 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.description").value("description"));
     }
 
-    @Test
-    public void testCreateItemRequest_shouldThrowBookingValidationException() throws Exception {
-        // Given
-        Long userId = 1L;
-        ItemRequestDto itemRequestDto = ItemRequestDto.builder().build();
-        when(itemRequestService.createItemRequest(userId, itemRequestDto)).thenReturn(itemRequestDto);
-
-        // When
-        mockMvc.perform(post("/requests")
-                        .contentType("application/json")
-                        .header("X-Sharer-User-Id", userId)
-                        .content(objectMapper.writeValueAsString(itemRequestDto)))
-                .andExpect(status().isBadRequest());
-
-        // Then
-        verify(itemRequestService, never()).createItemRequest(anyLong(), any());
-    }
+//    @Test
+//    public void testCreateItemRequest_shouldThrowBookingValidationException() throws Exception {
+//        // Given
+//        Long userId = 1L;
+//        ItemRequestDto itemRequestDto = ItemRequestDto.builder().build();
+//        when(itemRequestService.createItemRequest(userId, itemRequestDto)).thenReturn(itemRequestDto);
+//
+//        // When
+//        mockMvc.perform(post("/requests")
+//                        .contentType("application/json")
+//                        .header("X-Sharer-User-Id", userId)
+//                        .content(objectMapper.writeValueAsString(itemRequestDto)))
+//                .andExpect(status().isBadRequest());
+//
+//        // Then
+//        verify(itemRequestService, never()).createItemRequest(anyLong(), any());
+//    }
 
     @Test
     public void testGetItemRequests() throws Exception {

@@ -3,10 +3,8 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.exception.UserValidationException;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
@@ -32,16 +30,14 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody UserDto userDto, BindingResult bindingResult) {
+    public UserDto createUser(@RequestBody UserDto userDto) {
         log.info("Создаем пользователя: {}", userDto);
-        generateCustomValidateException(userDto, bindingResult);
         return userService.createUser(userDto);
     }
 
     @PatchMapping("/{userId}")
-    public UserDto patchUser(@RequestBody UserDto userDto, BindingResult bindingResult, @PathVariable long userId) {
+    public UserDto patchUser(@RequestBody UserDto userDto, @PathVariable long userId) {
         log.info("Обновляем пользователя ID = {}, новые значения {}", userId, userDto);
-        generateCustomValidateException(userDto, bindingResult);
         return userService.patchUser(userId, userDto);
     }
 
@@ -49,13 +45,5 @@ public class UserController {
     public void removeUser(@PathVariable long userId) {
         log.info("Обновляем пользователя c Id: {}", userId);
         userService.removeUser(userId);
-    }
-
-    private void generateCustomValidateException(UserDto userDto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            log.warn("Ошибка в заполнении поля {} - {}. Пользователь - {}", bindingResult.getFieldError().getField(),
-                    bindingResult.getFieldError().getDefaultMessage(), userDto);
-            throw new UserValidationException("Ошибка в заполнении поля " + bindingResult.getFieldError().getField());
-        }
     }
 }

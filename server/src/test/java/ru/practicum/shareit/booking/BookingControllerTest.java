@@ -9,7 +9,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
-import ru.practicum.shareit.booking.exception.WrongBookingUserException;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 
@@ -59,50 +58,50 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.end").value(endDate.toString()));
     }
 
-    @Test
-    public void testCreateBooking_whenStartDateIsMissing() throws Exception {
-        // given
-        Long itemId = 1L;
-        Long userId = 2L;
-        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
-        BookingDto bookingDto = BookingDto.builder()
-                .itemId(itemId)
-                .end(endDate.toString())
-                .build();
-
-        when(bookingService.createBooking(userId, bookingDto)).thenReturn(bookingDto);
-
-        // when
-        mockMvc.perform(post("/bookings")
-                        .contentType("application/json")
-                        .header("X-Sharer-User-Id", userId)
-                        .content(objectMapper.writeValueAsString(bookingDto)))
-                .andExpect(status().isBadRequest());
-
-        //then
-        verify(bookingService, never()).createBooking(anyLong(), any());
-    }
-
-    @Test
-    public void testCreateBooking_whenWrongBookingUser() throws Exception {
-        // given
-        Long itemId = 1L;
-        Long userId = 2L;
-        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
-        BookingDto bookingDto = BookingDto.builder()
-                .itemId(itemId)
-                .end(endDate.toString())
-                .build();
-
-        when(bookingService.createBooking(userId, bookingDto)).thenThrow(new WrongBookingUserException("error"));
-
-        // when
-        mockMvc.perform(post("/bookings")
-                        .contentType("application/json")
-                        .header("X-Sharer-User-Id", userId)
-                        .content(objectMapper.writeValueAsString(bookingDto)))
-                .andExpect(status().isBadRequest());
-    }
+//    @Test
+//    public void testCreateBooking_whenStartDateIsMissing() throws Exception {
+//        // given
+//        Long itemId = 1L;
+//        Long userId = 2L;
+//        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
+//        BookingDto bookingDto = BookingDto.builder()
+//                .itemId(itemId)
+//                .end(endDate.toString())
+//                .build();
+//
+//        when(bookingService.createBooking(userId, bookingDto)).thenReturn(bookingDto);
+//
+//        // when
+//        mockMvc.perform(post("/bookings")
+//                        .contentType("application/json")
+//                        .header("X-Sharer-User-Id", userId)
+//                        .content(objectMapper.writeValueAsString(bookingDto)))
+//                .andExpect(status().isBadRequest());
+//
+//        //then
+//        verify(bookingService, never()).createBooking(anyLong(), any());
+//    }
+//
+//    @Test
+//    public void testCreateBooking_whenWrongBookingUser() throws Exception {
+//        // given
+//        Long itemId = 1L;
+//        Long userId = 2L;
+//        LocalDateTime endDate = LocalDateTime.now().plusDays(3);
+//        BookingDto bookingDto = BookingDto.builder()
+//                .itemId(itemId)
+//                .end(endDate.toString())
+//                .build();
+//
+//        when(bookingService.createBooking(userId, bookingDto)).thenThrow(new WrongBookingUserException("error"));
+//
+//        // when
+//        mockMvc.perform(post("/bookings")
+//                        .contentType("application/json")
+//                        .header("X-Sharer-User-Id", userId)
+//                        .content(objectMapper.writeValueAsString(bookingDto)))
+//                .andExpect(status().isBadRequest());
+//    }
 
     @Test
     public void testCreateBooking_whenItemNotAvailable() throws Exception {
@@ -238,25 +237,25 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.[0].end").value(endDate.toString()));
     }
 
-    @Test
-    public void testGetAllBookings_whenUnknownBookingState() throws Exception {
-        // given
-        Long userId = 2L;
-        Integer from = 0;
-        Integer size = 10;
-
-        // when
-        mockMvc.perform(get("/bookings")
-                        .header("X-Sharer-User-Id", userId)
-                        .param("from", from.toString())
-                        .param("size", size.toString())
-                        .param("state", "UNKNOWN")
-                        .header("X-Sharer-User-Id", userId))
-                .andExpect(status().isBadRequest());
-
-        //then
-        verify(bookingService, never()).getAllBookings(anyLong(), any(), anyInt(), anyInt());
-    }
+//    @Test
+//    public void testGetAllBookings_whenUnknownBookingState() throws Exception {
+//        // given
+//        Long userId = 2L;
+//        Integer from = 0;
+//        Integer size = 10;
+//
+//        // when
+//        mockMvc.perform(get("/bookings")
+//                        .header("X-Sharer-User-Id", userId)
+//                        .param("from", from.toString())
+//                        .param("size", size.toString())
+//                        .param("state", "UNKNOWN")
+//                        .header("X-Sharer-User-Id", userId))
+//                .andExpect(status().isBadRequest());
+//
+//        //then
+//        verify(bookingService, never()).getAllBookings(anyLong(), any(), anyInt(), anyInt());
+//    }
 
     @Test
     public void testGetAllBookingsByOwner() throws Exception {

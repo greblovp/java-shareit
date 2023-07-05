@@ -3,11 +3,8 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.exception.BookingValidationException;
-import ru.practicum.shareit.booking.exception.BookingWrongStatusException;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import java.util.Collection;
@@ -21,10 +18,8 @@ public class BookingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookingDto createBooking(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody BookingDto bookingDto,
-                                    BindingResult bindingResult) {
+    public BookingDto createBooking(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody BookingDto bookingDto) {
         log.info("Создать бронирование на вещь ID = {} для пользователя ID = {}", bookingDto.getItemId(), userId);
-        generateCustomValidateException(bookingDto, bindingResult);
         return bookingService.createBooking(userId, bookingDto);
     }
 
@@ -47,13 +42,7 @@ public class BookingController {
                                               @RequestParam(defaultValue = "0") Integer from,
                                               @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получить бронирования пользователя ID = {} в состоянии {}", userId, state);
-        BookingState bookingState;
-        try {
-            bookingState = BookingState.valueOf(state);
-        } catch (IllegalArgumentException e) {
-            throw new BookingWrongStatusException("Unknown state: " + state);
-        }
-        return bookingService.getAllBookings(userId, bookingState, from, size);
+        return bookingService.getAllBookings(userId, BookingState.valueOf(state), from, size);
     }
 
     @GetMapping("/owner")
@@ -62,21 +51,6 @@ public class BookingController {
                                                      @RequestParam(defaultValue = "0") Integer from,
                                                      @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получить бронирования владельца ID = {} в состоянии {}", userId, state);
-        BookingState bookingState;
-        try {
-            bookingState = BookingState.valueOf(state);
-        } catch (IllegalArgumentException e) {
-            throw new BookingWrongStatusException("Unknown state: " + state);
-        }
-        return bookingService.getAllBookingsByOwner(userId, bookingState, from, size);
-    }
-
-    private void generateCustomValidateException(BookingDto bookingDto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            log.warn("Ошибка в заполнении поля {} - {}. Бронирование - {}", bindingResult.getFieldError().getField(),
-                    bindingResult.getFieldError().getDefaultMessage(), bookingDto);
-            throw new BookingValidationException("Ошибка в заполнении поля " + bindingResult.getFieldError().getField() + " - " +
-                    bindingResult.getFieldError().getDefaultMessage());
-        }
+        return bookingService.getAllBookingsByOwner(userId, BookingState.valueOf(state), from, size);
     }
 }

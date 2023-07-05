@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.exception.UserValidationException;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -40,10 +39,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDto createUser(UserDto userDto) {
-        if (userDto.getEmail() == null) {
-            throw new UserValidationException("Email не может быть пустым.");
-        }
-
         User user = UserMapper.toUser(userDto);
 
         try {

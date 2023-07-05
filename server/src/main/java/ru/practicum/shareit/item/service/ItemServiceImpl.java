@@ -16,7 +16,6 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.exception.CommentNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.ItemValidationException;
 import ru.practicum.shareit.item.exception.WrongItemOwnerException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
@@ -41,12 +40,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDto createItem(Long userId, ItemDto itemDto) {
-        //Для создания Вещи необходимо проверить заполненность полей
-        if (itemDto.getName() == null || itemDto.getDescription() == null || itemDto.getAvailable() == null
-                || itemDto.getName().isBlank() || itemDto.getDescription().isBlank()) {
-            throw new ItemValidationException("Заполните все поля.");
-        }
-
         //Проверяем, что пользователь существует
         userService.getUserById(userId);
 

@@ -13,7 +13,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.exception.UserValidationException;
 
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
@@ -131,16 +130,16 @@ class UserServiceImplTest {
         assertThat(targetUser.getEmail(), equalTo(sourceUserDto.getEmail()));
     }
 
-    @Test
-    void testCreateUser_whenEmailIsNull() {
-        // given
-        UserDto sourceUserDto = makeUserDto(null, "Ivan");
-
-        // when & then
-        assertThatThrownBy(() -> userService.createUser(sourceUserDto))
-                .isInstanceOf(UserValidationException.class)
-                .hasMessage("Email не может быть пустым.");
-    }
+//    @Test
+//    void testCreateUser_whenEmailIsNull() {
+//        // given
+//        UserDto sourceUserDto = makeUserDto(null, "Ivan");
+//
+//        // when & then
+//        assertThatThrownBy(() -> userService.createUser(sourceUserDto))
+//                .isInstanceOf(UserValidationException.class)
+//                .hasMessage("Email не может быть пустым.");
+//    }
 
     @Test
     void testCreateUser_whenEmailAlreadyExists() {

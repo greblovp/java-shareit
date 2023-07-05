@@ -5,29 +5,25 @@ import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class BookingDtoTest {
 
-    private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-    private final Validator validator = validatorFactory.getValidator();
-
-    @Test
-    public void testNotNullConstraints() {
-        BookingDto bookingDto = BookingDto.builder()
-                .id(1L)
-                .itemId(null)
-                .start(null)
-                .end(null)
-                .status(BookingStatus.WAITING)
-                .build();
-
-        assertEquals(3, validator.validate(bookingDto).size());
-    }
+//    private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+//    private final Validator validator = validatorFactory.getValidator();
+//
+//    @Test
+//    public void testNotNullConstraints() {
+//        BookingDto bookingDto = BookingDto.builder()
+//                .id(1L)
+//                .itemId(null)
+//                .start(null)
+//                .end(null)
+//                .status(BookingStatus.WAITING)
+//                .build();
+//
+//        assertEquals(3, validator.validate(bookingDto).size());
+//    }
 
     @Test
     void testBookingDtoAllFields() {
