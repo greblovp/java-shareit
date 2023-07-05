@@ -130,17 +130,6 @@ class UserServiceImplTest {
         assertThat(targetUser.getEmail(), equalTo(sourceUserDto.getEmail()));
     }
 
-//    @Test
-//    void testCreateUser_whenEmailIsNull() {
-//        // given
-//        UserDto sourceUserDto = makeUserDto(null, "Ivan");
-//
-//        // when & then
-//        assertThatThrownBy(() -> userService.createUser(sourceUserDto))
-//                .isInstanceOf(UserValidationException.class)
-//                .hasMessage("Email не может быть пустым.");
-//    }
-
     @Test
     void testCreateUser_whenEmailAlreadyExists() {
         // given

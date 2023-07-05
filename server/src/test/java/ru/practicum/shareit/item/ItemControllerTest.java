@@ -69,23 +69,6 @@ class ItemControllerTest {
         verify(itemService, never()).createItem(userId, itemToCreate);
     }
 
-//    @Test
-//    void testCreateItemWithInvalidAttributes() throws Exception {
-//        // Given
-//        Long userId = 1L;
-//        ItemDto itemToCreate = ItemDto.builder()
-//                .name("name")
-//                .build();
-//        when(itemService.createItem(userId, itemToCreate)).thenThrow(new ItemValidationException("error"));
-//
-//        // when
-//        mockMvc.perform(post("/items")
-//                        .contentType("application/json")
-//                        .header("X-Sharer-User-Id", userId)
-//                        .content(objectMapper.writeValueAsString(itemToCreate)))
-//                .andExpect(status().isBadRequest());
-//    }
-
     @Test
     void testUpdateValidItem() throws Exception {
         // Given
@@ -213,44 +196,4 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.text").value("Test comment"));
     }
-
-//    @Test
-//    public void testAddCommentInvalidRequestBody() throws Exception {
-//        // Given
-//        CommentDto commentDto = CommentDto.builder().text("").build();
-//        long userId = 1L;
-//        long itemId = 1L;
-//
-//        when(itemService.addComment(userId, itemId, commentDto)).thenReturn(commentDto);
-//
-//        // when
-//        mockMvc.perform(post("/items/" + itemId + "/comment")
-//                        .contentType("application/json")
-//                        .header("X-Sharer-User-Id", userId)
-//                        .content(objectMapper.writeValueAsString(commentDto)))
-//                .andExpect(status().isBadRequest());
-//
-//        //then
-//        verify(itemService, never()).addComment(anyLong(), anyLong(), any());
-//    }
-
-//    @Test
-//    public void testAddComment_whenNotAvailable() throws Exception {
-//        // Given
-//        CommentDto commentDto = CommentDto.builder().text("").build();
-//        long userId = 1L;
-//        long itemId = 1L;
-//
-//        when(itemService.addComment(userId, itemId, commentDto)).thenThrow(new CommentNotAvailableException("error"));
-//
-//        // when
-//        mockMvc.perform(post("/items/" + itemId + "/comment")
-//                        .contentType("application/json")
-//                        .header("X-Sharer-User-Id", userId)
-//                        .content(objectMapper.writeValueAsString(commentDto)))
-//                .andExpect(status().isBadRequest());
-//
-//        //then
-//        verify(itemService, never()).addComment(anyLong(), anyLong(), any());
-//    }
 }

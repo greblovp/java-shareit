@@ -295,49 +295,6 @@ class BookingServiceImplTest {
         verify(userService).getUserById(userBookerId);
     }
 
-//    @Test
-//    void testApproveBooking_whenWrongStatus() {
-//        // given
-//        ItemDto sourceItemDto = makeItemDto("item1", "description", true);
-//        UserDto sourceUserOwnerDto = makeUserDto("ivan@email", "Ivan");
-//        UserDto sourceUserBookerDto = makeUserDto("petr@email", "Petr");
-//        LocalDateTime starDate = LocalDateTime.now().plusDays(1);
-//        LocalDateTime endDate = LocalDateTime.now().plusDays(5);
-//
-//        User userOwnerEntity = UserMapper.toUser(sourceUserOwnerDto);
-//        em.persist(userOwnerEntity);
-//        em.flush();
-//        Long userOwnerId = userOwnerEntity.getId();
-//
-//        User userBookerEntity = UserMapper.toUser(sourceUserBookerDto);
-//        em.persist(userBookerEntity);
-//        em.flush();
-//        Long userBookerId = userBookerEntity.getId();
-//
-//        Item itemEntity = ItemMapper.toItem(sourceItemDto);
-//        itemEntity.setOwnerId(userOwnerId);
-//        em.persist(itemEntity);
-//        em.flush();
-//        Long itemId = itemEntity.getId();
-//
-//        BookingDto sourceBookingDto = makeBookingDto(itemId, starDate.toString(), endDate.toString());
-//        Booking bookingEntity = BookingMapper.toBooking(sourceBookingDto, itemEntity, userBookerEntity);
-//        bookingEntity.setStatus(BookingStatus.REJECTED);
-//        em.persist(bookingEntity);
-//        em.flush();
-//        Long bookingId = bookingEntity.getId();
-//
-//        sourceUserOwnerDto.setId(userOwnerId);
-//        when(userService.getUserById(userOwnerId)).thenReturn(sourceUserOwnerDto);
-//
-//        // when & then
-//        assertThatThrownBy(() -> bookingService.approveBooking(userOwnerId, bookingId, true))
-//                .isInstanceOf(BookingWrongStatusException.class)
-//                .hasMessage("Для согласования бронирования оно должно быть в статусе WAITING");
-//
-//        verify(userService).getUserById(userOwnerId);
-//    }
-
     @Test
     void testGetBooking() {
         // given

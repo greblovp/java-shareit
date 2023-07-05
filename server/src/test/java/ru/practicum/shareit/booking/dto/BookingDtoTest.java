@@ -9,22 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BookingDtoTest {
 
-//    private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-//    private final Validator validator = validatorFactory.getValidator();
-//
-//    @Test
-//    public void testNotNullConstraints() {
-//        BookingDto bookingDto = BookingDto.builder()
-//                .id(1L)
-//                .itemId(null)
-//                .start(null)
-//                .end(null)
-//                .status(BookingStatus.WAITING)
-//                .build();
-//
-//        assertEquals(3, validator.validate(bookingDto).size());
-//    }
-
     @Test
     void testBookingDtoAllFields() {
         ItemDto item = ItemDto.builder().id(1L).name("Item 1").build();
