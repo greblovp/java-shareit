@@ -28,7 +28,7 @@ public class ItemController {
                                              @RequestBody @Valid ItemRequestDto requestDto,
                                              BindingResult bindingResult) {
         log.info("Создать вещь для пользователя ID = {}", userId);
-        generateItemValidateException(requestDto,bindingResult);
+        generateItemValidateException(requestDto, bindingResult);
         return itemClient.createItem(userId, requestDto);
     }
 

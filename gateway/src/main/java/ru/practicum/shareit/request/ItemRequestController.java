@@ -23,8 +23,8 @@ public class ItemRequestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createItemRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                   @RequestBody @Valid RequestItemRequestDto requestDto,
-                                                   BindingResult bindingResult) {
+                                                    @RequestBody @Valid RequestItemRequestDto requestDto,
+                                                    BindingResult bindingResult) {
         log.info("Создать запрос на вещь \"{}\" для пользователя ID = {}", requestDto.getDescription(), userId);
         generateCustomValidateException(requestDto, bindingResult);
         return itemRequestClient.createItemRequest(userId, requestDto);
@@ -38,7 +38,7 @@ public class ItemRequestController {
 
     @GetMapping("/{requestId}")
     public ResponseEntity<Object> getItemRequestById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                             @PathVariable Long requestId) {
+                                                     @PathVariable Long requestId) {
         log.info("Получить запрос на вещь ID = {} для пользователя ID = {}", requestId, userId);
         return itemRequestClient.getItemRequestById(userId, requestId);
     }
